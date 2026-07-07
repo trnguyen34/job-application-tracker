@@ -1,4 +1,5 @@
 import { useStats } from '../api/hooks'
+import CsvPanel from '../components/dashboard/CsvPanel'
 import RemindersPanel from '../components/dashboard/RemindersPanel'
 import FunnelChart from '../components/dashboard/FunnelChart'
 import SourceChart from '../components/dashboard/SourceChart'
@@ -7,7 +8,7 @@ import TimelineChart from '../components/dashboard/TimelineChart'
 import '../styles/dashboard.css'
 
 export default function DashboardPage() {
-  const { data: stats, loading, error } = useStats()
+  const { data: stats, loading, error, refetch } = useStats()
 
   if (error) return <div className="empty-state">Couldn’t load stats: {error.message}</div>
   if (loading || !stats) return <div className="empty-state">Loading dashboard…</div>
@@ -16,6 +17,7 @@ export default function DashboardPage() {
     <>
       <div className="dash-header">
         <h1>Dashboard</h1>
+        <CsvPanel onImported={refetch} />
       </div>
       <StatTiles stats={stats} />
       <div className="dash-grid">
