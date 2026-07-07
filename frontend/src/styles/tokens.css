@@ -1,0 +1,60 @@
+/* Design tokens — dark "ink" theme.
+   Chart-facing colors follow the validated dark-surface palette so UI chrome
+   and dataviz read as one system. */
+
+:root {
+  /* Surfaces */
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --surface-2: #232322;
+  --surface-3: #2c2c2a;
+
+  /* Ink */
+  --ink: #ffffff;
+  --ink-secondary: #c3c2b7;
+  --ink-muted: #898781;
+
+  /* Lines */
+  --hairline: rgba(255, 255, 255, 0.1);
+  --gridline: #2c2c2a;
+  --baseline: #383835;
+
+  /* The one saturated accent — interaction only */
+  --accent: #eda100;
+  --accent-ink: #0d0d0d;
+  --accent-soft: rgba(237, 161, 0, 0.14);
+
+  /* Status pipeline hues (categorical dark-surface slots, fixed mapping) */
+  --status-wishlist: #9085e9;
+  --status-applied: #3987e5;
+  --status-phone_screen: #1baf7a;
+  --status-interview: #eda100;
+  --status-offer: #d95926;
+  --status-accepted: #0ca30c;
+  --status-rejected: #e66767;
+  --status-withdrawn: #d55181;
+  --status-ghosted: #898781;
+
+  /* Semantic */
+  --danger: #e66767;
+  --good: #0ca30c;
+
+  /* Type */
+  --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
+
+  --shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
