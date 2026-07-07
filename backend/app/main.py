@@ -1,7 +1,21 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Job Application Tracker", docs_url="/docs")
+from . import models  # noqa: F401 — registers tables on Base.metadata
+from .database import Base, engine
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Schema is auto-created rather than migrated: single-user local SQLite
+    # with no deployed data. Alembic can be baselined later if needed.
+    Base.metadata.create_all(engine)
+    yield
+
+
+app = FastAPI(title="Job Application Tracker", docs_url="/docs", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
