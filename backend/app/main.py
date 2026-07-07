@@ -5,7 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models  # noqa: F401 — registers tables on Base.metadata
 from .database import Base, engine
-from .routers import applications, attachments, contacts, interviews, notes, reminders, stats
+from .routers import (
+    applications,
+    attachments,
+    contacts,
+    csv_io,
+    interviews,
+    notes,
+    reminders,
+    stats,
+)
 
 
 @asynccontextmanager
@@ -33,6 +42,7 @@ app.include_router(notes.router)
 app.include_router(reminders.router)
 app.include_router(stats.router)
 app.include_router(attachments.router)
+app.include_router(csv_io.router)
 
 
 @app.get("/api/health")
