@@ -1,4 +1,5 @@
 import { useStats } from '../api/hooks'
+import RemindersPanel from '../components/dashboard/RemindersPanel'
 import FunnelChart from '../components/dashboard/FunnelChart'
 import SourceChart from '../components/dashboard/SourceChart'
 import StatTiles from '../components/dashboard/StatTiles'
@@ -18,6 +19,10 @@ export default function DashboardPage() {
       </div>
       <StatTiles stats={stats} />
       <div className="dash-grid">
+        <div className="panel wide">
+          <h2>Upcoming follow-ups</h2>
+          <RemindersPanel />
+        </div>
         <div className="panel wide">
           <h2>Applications per week</h2>
           <TimelineChart data={stats.applications_over_time} />
