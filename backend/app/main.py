@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models  # noqa: F401 — registers tables on Base.metadata
 from .database import Base, engine
+from .routers import applications
 
 
 @asynccontextmanager
@@ -23,6 +24,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.include_router(applications.router)
 
 
 @app.get("/api/health")
