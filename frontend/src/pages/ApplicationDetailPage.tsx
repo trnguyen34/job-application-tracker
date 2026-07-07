@@ -7,11 +7,12 @@ import { STATUSES, STATUS_LABELS } from '../api/types'
 import ContactsSection from '../components/detail/ContactsSection'
 import InterviewsSection from '../components/detail/InterviewsSection'
 import NotesSection from '../components/detail/NotesSection'
+import AttachmentsSection from '../components/detail/AttachmentsSection'
 import RemindersSection from '../components/detail/RemindersSection'
 import InlineField from '../components/detail/InlineField'
 import '../styles/detail.css'
 
-type Tab = 'interviews' | 'contacts' | 'notes' | 'reminders'
+type Tab = 'interviews' | 'contacts' | 'notes' | 'reminders' | 'attachments'
 
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -45,6 +46,7 @@ export default function ApplicationDetailPage() {
     { key: 'contacts', label: 'Contacts', count: application.contacts.length },
     { key: 'notes', label: 'Notes', count: application.notes.length },
     { key: 'reminders', label: 'Reminders', count: application.reminders.length },
+    { key: 'attachments', label: 'Files', count: application.attachments.length },
   ]
 
   return (
@@ -215,6 +217,13 @@ export default function ApplicationDetailPage() {
             <RemindersSection
               applicationId={application.id}
               reminders={application.reminders}
+              onChanged={refetch}
+            />
+          )}
+          {tab === 'attachments' && (
+            <AttachmentsSection
+              applicationId={application.id}
+              attachments={application.attachments}
               onChanged={refetch}
             />
           )}
