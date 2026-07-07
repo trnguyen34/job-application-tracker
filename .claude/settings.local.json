@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(pip:*)",
+      "Bash(pip3:*)",
+      "Bash(source:*)",
+      "Bash(pytest:*)",
+      "Bash(alembic:*)",
+      "Bash(uvicorn:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(make:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(chmod:*)",
+      "Bash(curl localhost:*)",
+      "Bash(curl http://localhost:*)",
+      "Bash(curl http://127.0.0.1:*)"
+    ]
+  }
+}

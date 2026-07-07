@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Personal data — never commit
+tracker.db
+tracker.db-*
+uploads/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
