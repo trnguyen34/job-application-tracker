@@ -97,44 +97,7 @@
   font-weight: 600;
 }
 
-.status-menu {
-  position: absolute;
-  top: 42px;
-  left: 0;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  box-shadow: 0 10px 28px var(--border-strong);
-  padding: 8px;
-  width: 200px;
-  z-index: 30;
-}
-
-.status-menu-group {
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--text-faint);
-  padding: 6px 8px 2px;
-}
-
-.status-menu-group.closed {
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-  margin-top: 4px;
-}
-
-.status-menu-item {
-  width: 100%;
-  text-align: left;
-  padding: 7px 8px;
-  border-radius: 7px;
-  font-size: 13px;
-}
-
-.status-menu-item:hover {
-  background: var(--tint-weak);
-}
+/* (Status menu styles now live in global.css as the shared .dd-* rules.) */
 
 .priority-seg {
   display: flex;

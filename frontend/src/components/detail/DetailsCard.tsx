@@ -1,7 +1,15 @@
 import type { ApplicationDetail, WorkMode } from '../../api/types'
 import { CURRENCY_OPTIONS, fmtSalary, SOURCE_OPTIONS, WORK_MODE_LABELS } from '../../lib/design'
 import { shortDate } from '../../lib/dates'
+import DateInput from '../ui/DateInput'
 import LocationInput from '../ui/LocationInput'
+import Select from '../ui/Select'
+
+const asGroup = (values: readonly string[], labels?: Record<string, string>) => [
+  { options: values.map((v) => ({ value: v, label: labels?.[v] ?? v })) },
+]
+
+const WORK_MODE_GROUP = asGroup(['remote', 'hybrid', 'onsite'], WORK_MODE_LABELS)
 
 export interface DetailsDraft {
   company: string
@@ -115,26 +123,29 @@ export default function DetailsCard({
             Job posting URL
             <input value={draft.jobUrl} onChange={(e) => set('jobUrl')(e.target.value)} />
           </label>
-          <label>
+          <div className="details-edit-field">
             Applied date
-            <input
-              type="date"
+            <DateInput
+              ariaLabel="Applied date"
+              compact
               value={draft.appliedDate}
-              onChange={(e) => set('appliedDate')(e.target.value)}
+              onChange={set('appliedDate')}
             />
-          </label>
+          </div>
           <div className="details-edit-field">
             Location
             <LocationInput value={draft.location} onChange={set('location')} placeholder="" />
           </div>
-          <label>
+          <div className="details-edit-field">
             Work mode
-            <select value={draft.workMode} onChange={(e) => set('workMode')(e.target.value)}>
-              <option value="remote">Remote</option>
-              <option value="hybrid">Hybrid</option>
-              <option value="onsite">Onsite</option>
-            </select>
-          </label>
+            <Select
+              ariaLabel="Work mode"
+              compact
+              value={draft.workMode}
+              groups={WORK_MODE_GROUP}
+              onChange={set('workMode')}
+            />
+          </div>
           <div className="salary-row">
             <label>
               Min salary
@@ -154,27 +165,27 @@ export default function DetailsCard({
                 onChange={(e) => set('salaryMax')(e.target.value)}
               />
             </label>
-            <label className="currency">
+            <div className="details-edit-field currency">
               Currency
-              <select value={draft.currency} onChange={(e) => set('currency')(e.target.value)}>
-                {currencyOptions.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </label>
+              <Select
+                ariaLabel="Currency"
+                compact
+                value={draft.currency}
+                groups={asGroup(currencyOptions)}
+                onChange={set('currency')}
+              />
+            </div>
           </div>
-          <label>
+          <div className="details-edit-field">
             Source
-            <select value={draft.source} onChange={(e) => set('source')(e.target.value)}>
-              {sourceOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </label>
+            <Select
+              ariaLabel="Source"
+              compact
+              value={draft.source}
+              groups={asGroup(sourceOptions)}
+              onChange={set('source')}
+            />
+          </div>
         </div>
       )}
     </div>

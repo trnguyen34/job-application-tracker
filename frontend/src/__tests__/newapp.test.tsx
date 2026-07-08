@@ -55,7 +55,8 @@ describe('NewApplicationModal', () => {
 
     await userEvent.type(screen.getByPlaceholderText('Company *'), 'Acme')
     await userEvent.type(screen.getByPlaceholderText('Role / title *'), 'Engineer')
-    await userEvent.selectOptions(screen.getByLabelText('Status'), 'wishlist')
+    await userEvent.click(screen.getByRole('button', { name: 'Status' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '● Wishlist' }))
     await userEvent.click(screen.getByRole('button', { name: 'Add to Wishlist' }))
 
     expect(api.post).toHaveBeenCalledWith(

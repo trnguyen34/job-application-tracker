@@ -3,6 +3,8 @@ import { api } from '../../api/client'
 import type { InterviewRound, Outcome, RoundType } from '../../api/types'
 import { ROUND_TYPE_LABELS } from '../../api/types'
 import { formatDateTime, toDate } from '../../lib/dates'
+import DateInput from '../ui/DateInput'
+import Select from '../ui/Select'
 
 /** The design's round-type choices; legacy values (behavioral,
     system_design) stay selectable when editing a round that has one. */
@@ -77,35 +79,30 @@ export default function RoundsTab({ applicationId, rounds, act, requestDelete, o
         <div className="tab-form">
           <div className="tab-form-title">{form.id ? 'Edit round' : 'Add round'}</div>
           <div className="tab-form-grid">
-            <select
-              aria-label="Round type"
+            <Select
+              ariaLabel="Round type"
+              compact
               value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as RoundType })}
-            >
-              {typeOptions.map((t) => (
-                <option key={t} value={t}>
-                  {ROUND_TYPE_LABELS[t]}
-                </option>
-              ))}
-            </select>
-            <select
-              aria-label="Outcome"
-              value={form.outcome}
-              onChange={(e) => setForm({ ...form, outcome: e.target.value as Outcome })}
-            >
-              {OUTCOMES.map((o) => (
-                <option key={o} value={o}>
-                  {OUTCOME_LABELS[o]}
-                </option>
-              ))}
-            </select>
-            <input
-              className="span-2"
-              type="datetime-local"
-              aria-label="Scheduled at"
-              value={form.scheduledAt}
-              onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
+              groups={[{ options: typeOptions.map((t) => ({ value: t, label: ROUND_TYPE_LABELS[t] })) }]}
+              onChange={(t) => setForm({ ...form, type: t as RoundType })}
             />
+            <Select
+              ariaLabel="Outcome"
+              compact
+              value={form.outcome}
+              groups={[{ options: OUTCOMES.map((o) => ({ value: o, label: OUTCOME_LABELS[o] })) }]}
+              onChange={(o) => setForm({ ...form, outcome: o as Outcome })}
+            />
+            <div className="span-2">
+              <DateInput
+                ariaLabel="Scheduled at"
+                withTime
+                compact
+                placeholder="Schedule (optional)"
+                value={form.scheduledAt}
+                onChange={(scheduledAt) => setForm({ ...form, scheduledAt })}
+              />
+            </div>
             <input
               className="span-2"
               placeholder="Interviewer(s)"

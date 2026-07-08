@@ -42,6 +42,14 @@ export const CLOSED_STATUSES = STATUS_ORDER.filter(isTerminalStatus)
 export const statusFg = (status: Status) => `var(--status-${status}-fg)`
 export const statusTint = (status: Status) => `var(--status-${status}-tint)`
 
+const statusOption = (s: Status) => ({ value: s, label: STATUS_LABELS[s], color: statusFg(s) })
+
+/** Grouped, tinted option list for the shared status dropdown. */
+export const STATUS_GROUPS = [
+  { label: 'Active', options: ACTIVE_STATUSES.map(statusOption) },
+  { label: 'Closed', options: CLOSED_STATUSES.map(statusOption) },
+]
+
 export const WORK_MODE_LABELS = { remote: 'Remote', hybrid: 'Hybrid', onsite: 'Onsite' } as const
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {

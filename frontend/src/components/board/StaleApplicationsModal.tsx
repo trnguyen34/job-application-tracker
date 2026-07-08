@@ -1,23 +1,20 @@
-import { useState, type MouseEvent } from 'react'
+import { useState } from 'react'
 import { api, errorMessage } from '../../api/client'
 import type { ApplicationCard } from '../../api/types'
 import { addDaysISO, shortDate } from '../../lib/dates'
 import ConfirmDialog from '../ui/ConfirmDialog'
+import { DropdownMenu, useAnchoredMenu } from '../ui/Select'
 import { useToast } from '../ui/Toast'
 
-const SNOOZE_OPTIONS = [
-  { label: '1 week', days: 7 },
-  { label: '1 month', days: 30 },
-  { label: '3 months', days: 90 },
+const SNOOZE_GROUP = [
+  {
+    options: [
+      { value: '7', label: '1 week' },
+      { value: '30', label: '1 month' },
+      { value: '90', label: '3 months' },
+    ],
+  },
 ]
-
-// Room the open menu needs (3 options + padding), for the flip-up check.
-const MENU_HEIGHT = 140
-
-interface MenuAnchor {
-  id: number
-  pos: { top?: number; bottom?: number; right: number }
-}
 
 interface Props {
   applications: ApplicationCard[]
@@ -26,31 +23,76 @@ interface Props {
   onMutated: () => void
 }
 
+interface RowProps {
+  card: ApplicationCard
+  onGhost: () => void
+  onSnooze: (days: number) => void
+  onDelete: () => void
+}
+
+function StaleRow({ card, onGhost, onSnooze, onDelete }: RowProps) {
+  const menu = useAnchoredMenu()
+
+  return (
+    <div className="stale-row">
+      <div className="stale-main">
+        <span className="stale-company">{card.company}</span>
+        <span className="stale-role">{card.role}</span>
+        {card.applied_date && (
+          <span className="stale-meta">
+            Applied {shortDate(card.applied_date)} · {card.days_since_applied}d ago
+          </span>
+        )}
+      </div>
+      <div className="stale-actions">
+        <button type="button" className="stale-ghost" onClick={onGhost}>
+          Move to Ghosted
+        </button>
+        <div
+          className="dd-wrap"
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) menu.close()
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') menu.close()
+          }}
+        >
+          <button
+            type="button"
+            className="stale-snooze"
+            aria-haspopup="menu"
+            aria-expanded={menu.open}
+            aria-label={`Ignore ${card.company} for`}
+            onClick={menu.toggle}
+          >
+            Ignore for… ▾
+          </button>
+          {menu.open && (
+            <DropdownMenu
+              groups={SNOOZE_GROUP}
+              style={menu.style ?? undefined}
+              onChoose={(days) => {
+                menu.close()
+                onSnooze(Number(days))
+              }}
+            />
+          )}
+        </div>
+        <button type="button" className="stale-delete" onClick={onDelete}>
+          Delete
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /** Triage prompt for applications stuck in Applied: move to Ghosted,
     delete, or ignore for a chosen duration. Rows leave the list as they
     are handled; the modal closes itself after the last one. */
 export default function StaleApplicationsModal({ applications, onClose, onMutated }: Props) {
   const [stale, setStale] = useState<ApplicationCard[]>(applications)
   const [deleting, setDeleting] = useState<ApplicationCard | null>(null)
-  const [menuFor, setMenuFor] = useState<MenuAnchor | null>(null)
   const toast = useToast()
-
-  // The modal card scrolls (overflow-y), which would clip an absolutely
-  // positioned menu on the last row — so the menu is position: fixed,
-  // anchored to the trigger's rect, flipping upward near the viewport edge.
-  const toggleMenu = (card: ApplicationCard, e: MouseEvent<HTMLButtonElement>) => {
-    if (menuFor?.id === card.id) {
-      setMenuFor(null)
-      return
-    }
-    const rect = e.currentTarget.getBoundingClientRect()
-    const right = window.innerWidth - rect.right
-    const pos =
-      rect.bottom + 6 + MENU_HEIGHT > window.innerHeight
-        ? { bottom: window.innerHeight - rect.top + 6, right }
-        : { top: rect.bottom + 6, right }
-    setMenuFor({ id: card.id, pos })
-  }
 
   const remove = (id: number) => {
     const next = stale.filter((c) => c.id !== id)
@@ -94,12 +136,7 @@ export default function StaleApplicationsModal({ applications, onClose, onMutate
 
   return (
     <div className="overlay top-aligned">
-      <div
-        className="modal-card stale-card"
-        role="dialog"
-        aria-label="Stale applications"
-        onScroll={() => setMenuFor(null)}
-      >
+      <div className="modal-card stale-card" role="dialog" aria-label="Stale applications">
         <div className="modal-title">Still waiting to hear back?</div>
         <div className="stale-intro">
           {stale.length === 1
@@ -108,71 +145,13 @@ export default function StaleApplicationsModal({ applications, onClose, onMutate
           been sitting in Applied for 3+ months. Close them out, or keep waiting.
         </div>
         {stale.map((card) => (
-          <div className="stale-row" key={card.id}>
-            <div className="stale-main">
-              <span className="stale-company">{card.company}</span>
-              <span className="stale-role">{card.role}</span>
-              {card.applied_date && (
-                <span className="stale-meta">
-                  Applied {shortDate(card.applied_date)} · {card.days_since_applied}d ago
-                </span>
-              )}
-            </div>
-            <div className="stale-actions">
-              <button type="button" className="stale-ghost" onClick={() => ghost(card)}>
-                Move to Ghosted
-              </button>
-              {/* Custom menu (same recipe as the detail modal's status pill) —
-                  the native select popup can't be styled to match the app. */}
-              <div
-                className="stale-snooze-wrap"
-                onBlur={(e) => {
-                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                    setMenuFor((m) => (m?.id === card.id ? null : m))
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') setMenuFor(null)
-                }}
-              >
-                <button
-                  type="button"
-                  className="stale-snooze"
-                  aria-haspopup="menu"
-                  aria-expanded={menuFor?.id === card.id}
-                  aria-label={`Ignore ${card.company} for`}
-                  onClick={(e) => toggleMenu(card, e)}
-                >
-                  Ignore for… ▾
-                </button>
-                {menuFor?.id === card.id && (
-                  <div className="stale-snooze-menu" role="menu" style={menuFor.pos}>
-                    {SNOOZE_OPTIONS.map((option) => (
-                      <button
-                        key={option.days}
-                        type="button"
-                        role="menuitem"
-                        className="stale-snooze-option"
-                        onClick={() => {
-                          setMenuFor(null)
-                          snooze(card, option.days)
-                        }}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                className="stale-delete"
-                onClick={() => setDeleting(card)}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
+          <StaleRow
+            key={card.id}
+            card={card}
+            onGhost={() => ghost(card)}
+            onSnooze={(days) => snooze(card, days)}
+            onDelete={() => setDeleting(card)}
+          />
         ))}
         <div className="modal-actions">
           <button

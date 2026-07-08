@@ -2,10 +2,32 @@ import { useState, type FormEvent } from 'react'
 import { api, errorMessage } from '../../api/client'
 import type { Application, Priority, Status, WorkMode } from '../../api/types'
 import { STATUS_LABELS } from '../../api/types'
-import { ACTIVE_STATUSES, CLOSED_STATUSES, SOURCE_OPTIONS } from '../../lib/design'
+import { SOURCE_OPTIONS, STATUS_GROUPS, WORK_MODE_LABELS } from '../../lib/design'
 import { todayISO } from '../../lib/dates'
 import LocationInput from '../ui/LocationInput'
+import Select from '../ui/Select'
 import { useToast } from '../ui/Toast'
+
+const WORK_MODE_GROUP = [
+  {
+    options: (['remote', 'hybrid', 'onsite'] as const).map((m) => ({
+      value: m,
+      label: WORK_MODE_LABELS[m],
+    })),
+  },
+]
+
+const SOURCE_GROUP = [{ options: SOURCE_OPTIONS.map((s) => ({ value: s, label: s })) }]
+
+const PRIORITY_GROUP = [
+  {
+    options: [
+      { value: 'low', label: 'Low priority' },
+      { value: 'medium', label: 'Medium priority' },
+      { value: 'high', label: 'High priority' },
+    ],
+  },
+]
 
 /* Contacts and interview rounds are disabled in this modal for now.
    Uncomment the blocks marked "contacts & rounds" (plus these imports)
@@ -164,51 +186,37 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
             value={role}
             onChange={(e) => setRole(e.target.value)}
           />
-          <label className="field-label span-2">
+          {/* All dropdowns share the detail modal's grouped menu design —
+              native select popups can't match the app. */}
+          <div className="field-label span-2">
             Status
-            <select value={status} onChange={(e) => setStatus(e.target.value as Status)}>
-              <optgroup label="Active">
-                {ACTIVE_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_LABELS[s]}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Closed">
-                {CLOSED_STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_LABELS[s]}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </label>
+            <Select
+              ariaLabel="Status"
+              value={status}
+              groups={STATUS_GROUPS}
+              menuColumns
+              onChange={(s) => setStatus(s as Status)}
+            />
+          </div>
           <LocationInput value={location} onChange={setLocation} placeholder="Location" />
-          <select
-            aria-label="Work mode"
+          <Select
+            ariaLabel="Work mode"
             value={workMode}
-            onChange={(e) => setWorkMode(e.target.value as WorkMode)}
-          >
-            <option value="remote">Remote</option>
-            <option value="hybrid">Hybrid</option>
-            <option value="onsite">Onsite</option>
-          </select>
-          <select aria-label="Source" value={source} onChange={(e) => setSource(e.target.value)}>
-            {SOURCE_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label="Priority"
+            groups={WORK_MODE_GROUP}
+            onChange={(m) => setWorkMode(m as WorkMode)}
+          />
+          <Select
+            ariaLabel="Source"
+            value={source}
+            groups={SOURCE_GROUP}
+            onChange={setSource}
+          />
+          <Select
+            ariaLabel="Priority"
             value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority)}
-          >
-            <option value="low">Low priority</option>
-            <option value="medium">Medium priority</option>
-            <option value="high">High priority</option>
-          </select>
+            groups={PRIORITY_GROUP}
+            onChange={(p) => setPriority(p as Priority)}
+          />
           <input
             className="span-2"
             placeholder="Job posting URL"
