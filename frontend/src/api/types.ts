@@ -148,6 +148,7 @@ export interface ApplicationDetail extends Application {
 export interface Stats {
   totals: { total: number; active: number; offers: number; rejected: number }
   applications_over_time: { week: string; count: number }[]
+  applications_per_day: { date: string; count: number }[]
   status_funnel: { status: Status; count: number }[]
   by_source: { source: string; count: number }[]
   avg_response_time_days: number | null

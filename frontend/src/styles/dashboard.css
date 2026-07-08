@@ -1,165 +1,269 @@
-.dash-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-5);
+/* Dashboard view — ported from the Job Tracker design (pure CSS charts). */
+
+.dash-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
-.dash-header h1 {
-  font-size: 22px;
+.dash-content {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 28px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
+
+/* Stat tiles */
 
 .stat-tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: var(--space-3);
-  margin-bottom: var(--space-5);
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .stat-tile {
-  background: var(--surface-1);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-l);
-  padding: var(--space-4);
+  flex: 1;
+  min-width: 160px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
 }
 
 .stat-value {
-  font-family: var(--font-display);
+  font-family: var(--font-serif);
   font-size: 30px;
-  font-weight: 700;
-  line-height: 1.1;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .stat-label {
-  color: var(--ink-muted);
-  font-size: 12px;
+  font-size: 12.5px;
+  color: var(--text-faint);
   margin-top: 4px;
 }
 
-.dash-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
+/* Panels */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
 }
 
-@media (max-width: 1000px) {
-  .dash-grid {
+.panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.panel-title.spaced {
+  margin-bottom: 16px;
+}
+
+.dash-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 800px) {
+  .dash-grid-2 {
     grid-template-columns: 1fr;
   }
 }
 
-.panel {
-  background: var(--surface-1);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-l);
-  padding: var(--space-4);
-}
+/* Follow-ups */
 
-.panel.wide {
-  grid-column: 1 / -1;
-}
-
-.panel h2 {
-  font-size: 14px;
-  color: var(--ink-secondary);
-  margin-bottom: var(--space-3);
-}
-
-/* Reminders */
-
-.reminder-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.reminder-row {
+.followup-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: 10px 4px;
-  border-bottom: 1px solid var(--hairline);
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
 }
 
-.reminder-row:last-child {
-  border-bottom: none;
+.followup-desc {
+  font-size: 13.5px;
+  color: var(--text);
 }
 
-.reminder-row .check {
-  color: var(--ink-muted);
-  font-size: 16px;
-  line-height: 1;
-  padding: 4px;
-  border-radius: 50%;
+.followup-company {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 2px;
 }
 
-.reminder-row .check:hover {
-  color: var(--good);
+.followup-due {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
-.reminder-text {
+.followup-due.overdue {
+  color: var(--danger-fg);
+}
+
+.followups-empty {
+  font-size: 13px;
+  color: var(--text-faint);
+  padding: 16px 0 4px;
+  text-align: center;
+}
+
+/* Activity heatmap */
+
+.contrib-summary {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-bottom: 16px;
+}
+
+.contrib-scroller {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.contrib-day-labels {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  gap: 3px;
+  flex-shrink: 0;
+  margin-top: 17px;
 }
 
-.reminder-text .description {
-  font-weight: 500;
+.contrib-day-labels div {
+  height: 11px;
+  font-size: 9px;
+  color: var(--text-faint);
+  line-height: 11px;
 }
 
-.reminder-text .context {
-  color: var(--ink-muted);
-  font-size: 12px;
+.contrib-grid-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.reminder-text .context:hover {
-  color: var(--accent);
+.contrib-month-row {
+  display: grid;
+  grid-template-columns: repeat(53, 11px);
+  gap: 3px;
+  height: 14px;
 }
 
-.reminder-row .due {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--ink-secondary);
+.contrib-month-row span {
+  font-size: 9px;
+  color: var(--text-faint);
   white-space: nowrap;
 }
 
-.reminder-row .due.overdue,
-.item-card .due.overdue {
-  color: var(--danger);
-  font-weight: 600;
+.contrib-grid {
+  display: grid;
+  grid-template-columns: repeat(53, 11px);
+  grid-template-rows: repeat(7, 11px);
+  grid-auto-flow: column;
+  gap: 3px;
 }
 
-/* CSV */
+.contrib-grid div {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
 
-.csv-panel {
+.contrib-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+
+.contrib-legend span {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.contrib-legend div {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+/* Weekly bars */
+
+.weekly-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 140px;
+}
+
+.weekly-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: var(--space-1);
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 6px;
 }
 
-.csv-actions {
+.weekly-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.weekly-bar {
+  width: 100%;
+  background: var(--accent);
+  border-radius: 3px 3px 0 0;
+}
+
+.weekly-label {
+  font-size: 10px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* Funnel / source bars */
+
+.bar-rows {
   display: flex;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: 12px;
 }
 
-.csv-result {
+.bar-row-head {
+  display: flex;
+  justify-content: space-between;
   font-size: 12px;
-  color: var(--ink-secondary);
-  text-align: right;
+  color: var(--text-muted);
+  margin-bottom: 4px;
 }
 
-.csv-result p {
-  margin: 2px 0;
+.bar-track {
+  background: var(--tint-weak);
+  border-radius: 4px;
+  height: 18px;
 }
 
-.csv-result .muted {
-  color: var(--ink-muted);
+.bar-fill {
+  height: 18px;
+  border-radius: 4px;
 }
 
-.title.struck {
-  text-decoration: line-through;
-  color: var(--ink-muted);
+.bar-fill.accent {
+  background: var(--accent);
 }

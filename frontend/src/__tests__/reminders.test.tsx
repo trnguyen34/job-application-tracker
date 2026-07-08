@@ -1,8 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import RemindersPanel from '../components/dashboard/RemindersPanel'
+import FollowUps from '../components/dashboard/FollowUps'
 import RemindersCard from '../components/detail/RemindersCard'
 import { api } from '../api/client'
 import { todayISO } from '../lib/dates'
@@ -23,76 +23,64 @@ vi.mock('../api/client', async (importOriginal) => ({
 
 const upcoming: ReminderWithApplication[] = [
   {
-    id: 1,
-    application_id: 1,
-    due_date: '2020-01-01', // long past — always overdue
-    description: 'Chase the recruiter',
-    done: false,
-    created_at: '2020-01-01T00:00:00',
-    company: 'Acme Corp',
-    role: 'Backend Engineer',
-  },
-  {
     id: 2,
     application_id: 2,
-    due_date: '2999-12-31', // far future — never overdue
+    due_date: daysAhead(3),
     description: 'Send thank-you note',
     done: false,
     created_at: '2020-01-01T00:00:00',
     company: 'Figma',
     role: 'Full Stack Engineer',
   },
+  {
+    id: 1,
+    application_id: 1,
+    due_date: daysAgo(2),
+    description: 'Chase the recruiter',
+    done: false,
+    created_at: '2020-01-01T00:00:00',
+    company: 'Acme Corp',
+    role: 'Backend Engineer',
+  },
 ]
 
-describe('RemindersPanel', () => {
+describe('FollowUps', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(api.get).mockResolvedValue(upcoming)
-    vi.mocked(api.patch).mockResolvedValue({})
   })
 
-  it('highlights overdue reminders and not future ones', async () => {
+  const renderPanel = () =>
     render(
       <MemoryRouter>
-        <RemindersPanel />
+        <Routes>
+          <Route path="/" element={<FollowUps />} />
+          <Route path="/applications/:id" element={<div>DETAIL 1</div>} />
+        </Routes>
       </MemoryRouter>,
     )
-    const overdueRow = await screen.findByTestId('reminder-1')
-    expect(overdueRow).toHaveClass('overdue')
-    expect(within(overdueRow).getByText(/Overdue/)).toBeInTheDocument()
 
-    const futureRow = screen.getByTestId('reminder-2')
-    expect(futureRow).not.toHaveClass('overdue')
-    expect(within(futureRow).queryByText(/Overdue/)).not.toBeInTheDocument()
+  it('lists overdue reminders first with an Overdue label', async () => {
+    renderPanel()
+    const overdueRow = await screen.findByTestId('followup-1')
+    expect(within(overdueRow).getByText(/Overdue ·/)).toBeInTheDocument()
+
+    const rows = screen.getAllByTestId(/followup-/)
+    expect(rows[0]).toHaveAttribute('data-testid', 'followup-1')
+    expect(rows[1]).toHaveAttribute('data-testid', 'followup-2')
+    expect(within(rows[1]).getByText(/Due /)).toBeInTheDocument()
   })
 
-  it('marks a reminder done via PATCH', async () => {
-    render(
-      <MemoryRouter>
-        <RemindersPanel />
-      </MemoryRouter>,
-    )
-    await screen.findByTestId('reminder-1')
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Mark "Chase the recruiter" done' }),
-    )
-    expect(api.patch).toHaveBeenCalledWith('/api/reminders/1', { done: true })
+  it('opens the application when a row is clicked', async () => {
+    renderPanel()
+    await userEvent.click(await screen.findByTestId('followup-1'))
+    expect(await screen.findByText('DETAIL 1')).toBeInTheDocument()
   })
 
-  it('shows an error when marking done fails', async () => {
-    vi.mocked(api.patch).mockRejectedValue(new Error('Request failed with status 500'))
-    render(
-      <MemoryRouter>
-        <RemindersPanel />
-      </MemoryRouter>,
-    )
-    await screen.findByTestId('reminder-1')
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Mark "Chase the recruiter" done' }),
-    )
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Request failed with status 500',
-    )
+  it('shows the empty message when nothing is due', async () => {
+    vi.mocked(api.get).mockResolvedValue([])
+    renderPanel()
+    expect(await screen.findByText('Nothing due in the next two weeks.')).toBeInTheDocument()
   })
 })
 
