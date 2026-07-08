@@ -54,13 +54,15 @@
   --status-ghosted-fg: #71698a;
   --status-ghosted-tint: #eae7f0;
 
-  /* Board column backgrounds (dark theme mixes status fg into the surface) */
-  --column-wishlist: var(--status-wishlist-tint);
-  --column-applied: var(--status-applied-tint);
-  --column-phone_screen: var(--status-phone_screen-tint);
-  --column-interview: var(--status-interview-tint);
-  --column-offer: var(--status-offer-tint);
-  --column-closed: var(--status-withdrawn-tint);
+  /* Board column backgrounds — a deeper mix of each status color than the
+     badge tints (tint(fg, 0.78) instead of ~0.89) so columns stand out
+     against the page; the dark theme overrides below. */
+  --column-wishlist: rgb(219, 221, 224);
+  --column-applied: rgb(209, 221, 231);
+  --column-phone_screen: rgb(233, 222, 203);
+  --column-interview: rgb(226, 215, 231);
+  --column-offer: rgb(213, 229, 222);
+  --column-closed: rgb(228, 226, 223);
 
   /* Danger (delete affordances) */
   --danger-fg: #b14a3d;
@@ -116,13 +118,14 @@
   --tint-weak: rgba(241, 235, 224, 0.08);
   --disabled-bg: #35322b;
 
-  /* mixHex(status fg, #201D18, 0.88) */
-  --column-wishlist: rgb(39, 38, 35);
-  --column-applied: rgb(34, 38, 38);
-  --column-phone_screen: rgb(47, 38, 24);
-  --column-interview: rgb(43, 34, 39);
-  --column-offer: rgb(36, 42, 34);
-  --column-closed: rgb(44, 40, 34);
+  /* Deeper status mix to match the light theme's darker columns:
+     mixHex(status fg, #201D18, 0.78) */
+  --column-wishlist: rgb(45, 45, 44);
+  --column-applied: rgb(35, 45, 50);
+  --column-phone_screen: rgb(59, 46, 23);
+  --column-interview: rgb(52, 39, 51);
+  --column-offer: rgb(39, 52, 42);
+  --column-closed: rgb(54, 50, 42);
 
   /* mixHex(accent, #201D18, [0.72, 0.48, 0.24, 0]) */
   --contrib-0: rgba(255, 255, 255, 0.06);
