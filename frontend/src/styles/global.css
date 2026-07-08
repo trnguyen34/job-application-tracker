@@ -361,11 +361,48 @@ textarea:focus {
   flex-shrink: 0;
 }
 
-.stale-snooze {
+/* The three row actions share one pill metric so they read as a set:
+   keep (ghost) → snooze → destroy, destructive styling last. */
+.stale-ghost,
+.stale-snooze,
+.stale-delete {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
   font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.stale-ghost {
+  border: 1px solid var(--border-strong);
   color: var(--text-muted);
-  padding: 6px 8px;
-  border-radius: 12px;
+}
+
+.stale-ghost:hover {
+  color: var(--text);
+  background: var(--tint-weak);
+}
+
+.stale-snooze {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+  padding-right: 8px;
+}
+
+.stale-snooze:hover {
+  color: var(--text);
+  background: var(--tint-weak);
+}
+
+.stale-delete {
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+}
+
+.stale-delete:hover {
+  border-color: var(--danger-fg);
 }
 
 /* ---- Combobox (location autocomplete) ------------------------------------ */

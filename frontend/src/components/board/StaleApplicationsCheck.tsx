@@ -115,15 +115,8 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
               )}
             </div>
             <div className="stale-actions">
-              <button type="button" className="pill-link" onClick={() => ghost(card)}>
+              <button type="button" className="stale-ghost" onClick={() => ghost(card)}>
                 Move to Ghosted
-              </button>
-              <button
-                type="button"
-                className="btn-danger-pill"
-                onClick={() => setDeleting(card)}
-              >
-                Delete
               </button>
               <select
                 className="stale-snooze"
@@ -143,6 +136,13 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
                   </option>
                 ))}
               </select>
+              <button
+                type="button"
+                className="stale-delete"
+                onClick={() => setDeleting(card)}
+              >
+                Delete
+              </button>
             </div>
           </div>
         ))}
