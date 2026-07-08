@@ -33,6 +33,7 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
   const [stale, setStale] = useState<ApplicationCard[]>([])
   const [open, setOpen] = useState(false)
   const [deleting, setDeleting] = useState<ApplicationCard | null>(null)
+  const [menuFor, setMenuFor] = useState<number | null>(null)
   const toast = useToast()
 
   useEffect(() => {
@@ -118,24 +119,48 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
               <button type="button" className="stale-ghost" onClick={() => ghost(card)}>
                 Move to Ghosted
               </button>
-              <select
-                className="stale-snooze"
-                aria-label={`Ignore ${card.company} for`}
-                value=""
-                onChange={(e) => {
-                  const days = Number(e.target.value)
-                  if (days > 0) snooze(card, days)
+              {/* Custom menu (same recipe as the detail modal's status pill) —
+                  the native select popup can't be styled to match the app. */}
+              <div
+                className="stale-snooze-wrap"
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                    setMenuFor((m) => (m === card.id ? null : m))
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setMenuFor(null)
                 }}
               >
-                <option value="" disabled>
-                  Ignore for…
-                </option>
-                {SNOOZE_OPTIONS.map((option) => (
-                  <option key={option.days} value={option.days}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                <button
+                  type="button"
+                  className="stale-snooze"
+                  aria-haspopup="menu"
+                  aria-expanded={menuFor === card.id}
+                  aria-label={`Ignore ${card.company} for`}
+                  onClick={() => setMenuFor((m) => (m === card.id ? null : card.id))}
+                >
+                  Ignore for… ▾
+                </button>
+                {menuFor === card.id && (
+                  <div className="stale-snooze-menu" role="menu">
+                    {SNOOZE_OPTIONS.map((option) => (
+                      <button
+                        key={option.days}
+                        type="button"
+                        role="menuitem"
+                        className="stale-snooze-option"
+                        onClick={() => {
+                          setMenuFor(null)
+                          snooze(card, option.days)
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 className="stale-delete"

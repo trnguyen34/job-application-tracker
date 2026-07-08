@@ -99,7 +99,8 @@ describe('StaleApplicationsCheck', () => {
     const onMutated = renderCheck()
     await screen.findByRole('dialog', { name: 'Stale applications' })
 
-    await userEvent.selectOptions(screen.getByLabelText('Ignore Globex for'), '1 month')
+    await userEvent.click(screen.getByRole('button', { name: 'Ignore Globex for' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '1 month' }))
 
     expect(api.patch).toHaveBeenCalledWith('/api/applications/2', {
       stale_snoozed_until: addDaysISO(30),
