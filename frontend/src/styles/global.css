@@ -103,14 +103,14 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border-strong);
   flex-shrink: 0;
 }
 
 /* The active view reads larger than the inactive link, so Board vs
    Dashboard is obvious at a glance. */
 .crumb-current {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text);
   font-weight: 600;
   white-space: nowrap;
@@ -119,7 +119,7 @@ textarea:focus {
 }
 
 .crumb-link {
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-muted);
   padding: 6px 8px;
   border-radius: 8px;
@@ -132,6 +132,7 @@ textarea:focus {
 
 .crumb-sep {
   color: var(--text-faint);
+  font-size: 15px;
 }
 
 .top-bar .spacer {
