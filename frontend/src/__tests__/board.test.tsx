@@ -2,57 +2,80 @@ import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import KanbanBoard from '../components/board/KanbanBoard'
-import { cards } from './fixtures'
+import { nextEventFor } from '../components/board/ApplicationCard'
+import { cards, daysAgo, daysAhead, baseCard } from './fixtures'
 
-const renderBoard = (onMove = vi.fn()) =>
+const renderBoard = (onMove = vi.fn(), onOpen = vi.fn()) =>
   render(
     <MemoryRouter>
-      <KanbanBoard cards={cards} onMove={onMove} />
+      <KanbanBoard cards={cards} onMove={onMove} onOpen={onOpen} />
     </MemoryRouter>,
   )
 
 describe('KanbanBoard', () => {
-  it('renders one column per pipeline status', () => {
+  it('renders five active columns plus the grouped Closed column', () => {
     renderBoard()
-    for (const label of [
-      'Wishlist',
-      'Applied',
-      'Phone Screen',
-      'Interview',
-      'Offer',
-      'Accepted',
-      'Rejected',
-      'Withdrawn',
-      'Ghosted',
-    ]) {
-      expect(screen.getByRole('heading', { name: label })).toBeInTheDocument()
+    for (const key of ['wishlist', 'applied', 'phone_screen', 'interview', 'offer', 'closed']) {
+      expect(screen.getByTestId(`column-${key}`)).toBeInTheDocument()
     }
+    expect(screen.getByText('Closed')).toBeInTheDocument()
   })
 
-  it('places cards in their status column with company, role and age', () => {
+  it('places cards in their status column with company, role and meta line', () => {
     renderBoard()
     const applied = within(screen.getByTestId('column-applied'))
     expect(applied.getByText('Acme Corp')).toBeInTheDocument()
     expect(applied.getByText('Backend Engineer')).toBeInTheDocument()
-    expect(applied.getByText('12d ago')).toBeInTheDocument()
+    expect(applied.getByText(/Applied 12d ago/)).toBeInTheDocument()
 
     const interview = within(screen.getByTestId('column-interview'))
     expect(interview.getByText('Figma')).toBeInTheDocument()
 
     const wishlist = within(screen.getByTestId('column-wishlist'))
     expect(wishlist.getByText('Linear')).toBeInTheDocument()
-    expect(wishlist.queryByText(/d ago/)).not.toBeInTheDocument()
+    expect(wishlist.getByText(/Saved 2d ago/)).toBeInTheDocument()
   })
 
-  it('shows the next reminder chip on a card', () => {
+  it('groups terminal statuses into Closed with a status tag', () => {
     renderBoard()
-    const chip = screen.getByTitle('Prep for onsite')
-    expect(chip).toHaveClass('reminder')
+    const closed = within(screen.getByTestId('column-closed'))
+    expect(closed.getByText('Netflix')).toBeInTheDocument()
+    expect(closed.getByText('Rejected')).toBeInTheDocument()
+  })
+
+  it('shows the next-event chip from the earliest upcoming reminder', () => {
+    renderBoard()
+    expect(screen.getByText(/Prep for onsite · in 2d/)).toBeInTheDocument()
   })
 
   it('shows column counts', () => {
     renderBoard()
     expect(within(screen.getByTestId('column-applied')).getByText('1')).toBeInTheDocument()
     expect(within(screen.getByTestId('column-offer')).getByText('0')).toBeInTheDocument()
+  })
+})
+
+describe('nextEventFor', () => {
+  it('prefers an overdue reminder over everything else', () => {
+    const event = nextEventFor({
+      ...baseCard,
+      next_reminder: { id: 1, due_date: daysAgo(3), description: 'Chase recruiter' },
+      next_interview: { id: 2, round_type: 'technical', scheduled_at: `${daysAhead(1)}T10:00:00` },
+    })
+    expect(event).toEqual({ label: 'Overdue — Chase recruiter', overdue: true })
+  })
+
+  it('picks the earliest of reminder and interview when nothing is overdue', () => {
+    const event = nextEventFor({
+      ...baseCard,
+      next_reminder: { id: 1, due_date: daysAhead(5), description: 'Follow up' },
+      next_interview: { id: 2, round_type: 'technical', scheduled_at: `${daysAhead(1)}T10:00:00` },
+    })
+    expect(event?.overdue).toBe(false)
+    expect(event?.label).toMatch(/^Technical interview · /)
+  })
+
+  it('returns null when there is nothing upcoming', () => {
+    expect(nextEventFor(baseCard)).toBeNull()
   })
 })
