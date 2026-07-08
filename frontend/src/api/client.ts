@@ -9,6 +9,12 @@ export class ApiError extends Error {
   }
 }
 
+/** User-facing message for a failed request. ApiError already prefers the
+    backend's string detail; anything else gets a generic fallback. */
+export function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : 'Something went wrong.'
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, init)
   if (!response.ok) {

@@ -9,7 +9,9 @@ import BoardPage from '../pages/BoardPage'
 import { api } from '../api/client'
 import { cards } from './fixtures'
 
-vi.mock('../api/client', () => ({
+// Stub only `api`; keep ApiError/errorMessage real for components that use them.
+vi.mock('../api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/client')>()),
   api: {
     get: vi.fn(),
     post: vi.fn(),

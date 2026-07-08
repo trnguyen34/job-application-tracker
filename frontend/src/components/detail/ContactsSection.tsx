@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../../api/client'
+import { useApiAction } from '../../api/hooks'
 import type { Contact } from '../../api/types'
 
 interface Props {
@@ -13,34 +14,41 @@ export default function ContactsSection({ applicationId, contacts, onChanged }: 
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
   const [email, setEmail] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const { error, setError, run } = useApiAction()
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault()
     if (!name.trim()) {
       setError('Name is required.')
       return
     }
-    await api.post(`/api/applications/${applicationId}/contacts`, {
-      name: name.trim(),
-      role: role.trim() || null,
-      email: email.trim() || null,
+    run(async () => {
+      await api.post(`/api/applications/${applicationId}/contacts`, {
+        name: name.trim(),
+        role: role.trim() || null,
+        email: email.trim() || null,
+      })
+      setName('')
+      setRole('')
+      setEmail('')
+      setAdding(false)
+      onChanged()
     })
-    setName('')
-    setRole('')
-    setEmail('')
-    setAdding(false)
-    setError(null)
-    onChanged()
   }
 
-  const remove = async (id: number) => {
-    await api.del(`/api/contacts/${id}`)
-    onChanged()
-  }
+  const remove = (id: number) =>
+    run(async () => {
+      await api.del(`/api/contacts/${id}`)
+      onChanged()
+    })
 
   return (
     <div className="section-list">
+      {error && (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      )}
       {contacts.length === 0 && !adding && (
         <div className="empty-state">No contacts yet.</div>
       )}
@@ -73,11 +81,6 @@ export default function ContactsSection({ applicationId, contacts, onChanged }: 
             <input placeholder="Role" value={role} onChange={(e) => setRole(e.target.value)} />
             <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          {error && (
-            <p className="error-text" role="alert">
-              {error}
-            </p>
-          )}
           <div className="item-head">
             <span className="spacer">
               <button type="button" className="btn" onClick={() => setAdding(false)}>

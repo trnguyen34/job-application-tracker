@@ -8,7 +8,9 @@ import { api } from '../api/client'
 import { todayISO } from '../lib/dates'
 import type { Reminder, ReminderWithApplication } from '../api/types'
 
-vi.mock('../api/client', () => ({
+// Stub only `api`; keep ApiError/errorMessage real for components that use them.
+vi.mock('../api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/client')>()),
   api: {
     get: vi.fn(),
     post: vi.fn(),
@@ -74,6 +76,22 @@ describe('RemindersPanel', () => {
       screen.getByRole('button', { name: 'Mark "Chase the recruiter" done' }),
     )
     expect(api.patch).toHaveBeenCalledWith('/api/reminders/1', { done: true })
+  })
+
+  it('shows an error when marking done fails', async () => {
+    vi.mocked(api.patch).mockRejectedValue(new Error('Request failed with status 500'))
+    render(
+      <MemoryRouter>
+        <RemindersPanel />
+      </MemoryRouter>,
+    )
+    await screen.findByTestId('reminder-1')
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Mark "Chase the recruiter" done' }),
+    )
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Request failed with status 500',
+    )
   })
 })
 

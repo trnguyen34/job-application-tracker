@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../../api/client'
+import { useApiAction } from '../../api/hooks'
 import type { Reminder } from '../../api/types'
 import { isOverdue, shortDate, todayISO } from '../../lib/dates'
 
@@ -12,32 +13,35 @@ interface Props {
 export default function RemindersSection({ applicationId, reminders, onChanged }: Props) {
   const [description, setDescription] = useState('')
   const [dueDate, setDueDate] = useState(todayISO())
-  const [error, setError] = useState<string | null>(null)
+  const { error, setError, run } = useApiAction()
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault()
     if (!description.trim()) {
       setError('Description is required.')
       return
     }
-    await api.post(`/api/applications/${applicationId}/reminders`, {
-      description: description.trim(),
-      due_date: dueDate,
+    run(async () => {
+      await api.post(`/api/applications/${applicationId}/reminders`, {
+        description: description.trim(),
+        due_date: dueDate,
+      })
+      setDescription('')
+      onChanged()
     })
-    setDescription('')
-    setError(null)
-    onChanged()
   }
 
-  const toggle = async (reminder: Reminder) => {
-    await api.patch(`/api/reminders/${reminder.id}`, { done: !reminder.done })
-    onChanged()
-  }
+  const toggle = (reminder: Reminder) =>
+    run(async () => {
+      await api.patch(`/api/reminders/${reminder.id}`, { done: !reminder.done })
+      onChanged()
+    })
 
-  const remove = async (id: number) => {
-    await api.del(`/api/reminders/${id}`)
-    onChanged()
-  }
+  const remove = (id: number) =>
+    run(async () => {
+      await api.del(`/api/reminders/${id}`)
+      onChanged()
+    })
 
   return (
     <div className="section-list">

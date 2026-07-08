@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
-import { useApplication } from '../api/hooks'
+import { useApiAction, useApplication } from '../api/hooks'
 import type { Priority, Status, WorkMode } from '../api/types'
 import { STATUSES, STATUS_LABELS } from '../api/types'
 import ContactsSection from '../components/detail/ContactsSection'
@@ -19,20 +19,25 @@ export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: application, error, refetch } = useApplication(id!)
+  const { error: saveError, run } = useApiAction()
   const [tab, setTab] = useState<Tab>('interviews')
 
   if (error) return <div className="empty-state">Couldn’t load application: {error.message}</div>
   if (!application) return <div className="empty-state">Loading…</div>
 
+  // Throws on failure: InlineFields show the message themselves; the selects
+  // and delete below wrap calls in run() to surface it as saveError.
   const patch = async (fields: Record<string, unknown>) => {
     await api.patch(`/api/applications/${application.id}`, fields)
     refetch()
   }
 
-  const remove = async () => {
+  const remove = () => {
     if (!window.confirm(`Delete the ${application.company} application and all its data?`)) return
-    await api.del(`/api/applications/${application.id}`)
-    navigate('/')
+    run(async () => {
+      await api.del(`/api/applications/${application.id}`)
+      navigate('/')
+    })
   }
 
   const salaryDisplay =
@@ -80,7 +85,7 @@ export default function ApplicationDetailPage() {
               className="status-select"
               style={{ ['--status-hue' as string]: `var(--status-${application.status})` }}
               value={application.status}
-              onChange={(e) => patch({ status: e.target.value as Status })}
+              onChange={(e) => run(() => patch({ status: e.target.value as Status }))}
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -91,13 +96,18 @@ export default function ApplicationDetailPage() {
             <select
               aria-label="Priority"
               value={application.priority}
-              onChange={(e) => patch({ priority: e.target.value as Priority })}
+              onChange={(e) => run(() => patch({ priority: e.target.value as Priority }))}
             >
               <option value="low">Low priority</option>
               <option value="medium">Medium priority</option>
               <option value="high">High priority</option>
             </select>
           </div>
+          {saveError && (
+            <p className="error-text" role="alert">
+              {saveError}
+            </p>
+          )}
         </div>
         <button className="btn danger" onClick={remove}>
           Delete
@@ -128,7 +138,9 @@ export default function ApplicationDetailPage() {
             <select
               aria-label="Work mode"
               value={application.work_mode ?? ''}
-              onChange={(e) => patch({ work_mode: (e.target.value || null) as WorkMode | null })}
+              onChange={(e) =>
+                run(() => patch({ work_mode: (e.target.value || null) as WorkMode | null }))
+              }
             >
               <option value="">—</option>
               <option value="remote">Remote</option>

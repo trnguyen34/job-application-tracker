@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../../api/client'
+import { useApiAction } from '../../api/hooks'
 import type { InterviewRound, Outcome, RoundType } from '../../api/types'
 import { ROUND_TYPE_LABELS } from '../../api/types'
 import { formatDateTime } from '../../lib/dates'
@@ -17,32 +18,42 @@ export default function InterviewsSection({ applicationId, rounds, onChanged }: 
   const [roundType, setRoundType] = useState<RoundType>('phone_screen')
   const [scheduledAt, setScheduledAt] = useState('')
   const [interviewers, setInterviewers] = useState('')
+  const { error, run } = useApiAction()
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault()
-    await api.post(`/api/applications/${applicationId}/interviews`, {
-      round_type: roundType,
-      scheduled_at: scheduledAt || null,
-      interviewers: interviewers.trim() || null,
+    run(async () => {
+      await api.post(`/api/applications/${applicationId}/interviews`, {
+        round_type: roundType,
+        scheduled_at: scheduledAt || null,
+        interviewers: interviewers.trim() || null,
+      })
+      setAdding(false)
+      setScheduledAt('')
+      setInterviewers('')
+      onChanged()
     })
-    setAdding(false)
-    setScheduledAt('')
-    setInterviewers('')
-    onChanged()
   }
 
-  const setOutcome = async (id: number, outcome: Outcome) => {
-    await api.patch(`/api/interviews/${id}`, { outcome })
-    onChanged()
-  }
+  const setOutcome = (id: number, outcome: Outcome) =>
+    run(async () => {
+      await api.patch(`/api/interviews/${id}`, { outcome })
+      onChanged()
+    })
 
-  const remove = async (id: number) => {
-    await api.del(`/api/interviews/${id}`)
-    onChanged()
-  }
+  const remove = (id: number) =>
+    run(async () => {
+      await api.del(`/api/interviews/${id}`)
+      onChanged()
+    })
 
   return (
     <div className="section-list">
+      {error && (
+        <p className="error-text" role="alert">
+          {error}
+        </p>
+      )}
       {rounds.length === 0 && !adding && (
         <div className="empty-state">No interview rounds yet.</div>
       )}

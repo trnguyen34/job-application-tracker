@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { api, ApiError } from '../../api/client'
+import { api, ApiError, errorMessage } from '../../api/client'
 import type { Attachment, FileType } from '../../api/types'
 import { shortDate } from '../../lib/dates'
 
@@ -50,8 +50,12 @@ export default function AttachmentsSection({ applicationId, attachments, onChang
   }
 
   const remove = async (id: number) => {
-    await api.del(`/api/attachments/${id}`)
-    onChanged()
+    try {
+      await api.del(`/api/attachments/${id}`)
+      onChanged()
+    } catch (err) {
+      setError(errorMessage(err))
+    }
   }
 
   return (

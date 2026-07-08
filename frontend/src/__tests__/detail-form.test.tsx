@@ -8,7 +8,9 @@ import { api } from '../api/client'
 import { baseCard } from './fixtures'
 import type { ApplicationDetail } from '../api/types'
 
-vi.mock('../api/client', () => ({
+// Stub only `api`; keep ApiError/errorMessage real for components that use them.
+vi.mock('../api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/client')>()),
   api: {
     get: vi.fn(),
     post: vi.fn(),
@@ -104,6 +106,35 @@ describe('ApplicationDetailPage', () => {
     await screen.findByText('Acme Corp')
     await userEvent.selectOptions(screen.getByLabelText('Status'), 'interview')
     expect(api.patch).toHaveBeenCalledWith('/api/applications/1', { status: 'interview' })
+  })
+
+  it('keeps the draft and shows the message when an inline save fails', async () => {
+    vi.mocked(api.patch).mockRejectedValue(new Error('Request failed with status 500'))
+    renderDetail()
+    await screen.findByText('Acme Corp')
+
+    await userEvent.click(screen.getByText('Acme Corp'))
+    const input = screen.getByDisplayValue('Acme Corp')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'New Co{Enter}')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Request failed with status 500',
+    )
+    // still editing, draft intact
+    expect(screen.getByDisplayValue('New Co')).toBeInTheDocument()
+  })
+
+  it('surfaces a failed status change instead of ignoring it', async () => {
+    vi.mocked(api.patch).mockRejectedValue(new Error('Request failed with status 500'))
+    renderDetail()
+    await screen.findByText('Acme Corp')
+
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'interview')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Request failed with status 500',
+    )
   })
 
   it('links an absolute job URL by hostname', async () => {

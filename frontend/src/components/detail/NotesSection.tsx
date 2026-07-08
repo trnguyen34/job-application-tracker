@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api } from '../../api/client'
+import { useApiAction } from '../../api/hooks'
 import type { Note } from '../../api/types'
 import { formatDateTime } from '../../lib/dates'
 
@@ -11,19 +12,23 @@ interface Props {
 
 export default function NotesSection({ applicationId, notes, onChanged }: Props) {
   const [body, setBody] = useState('')
+  const { error, run } = useApiAction()
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault()
     if (!body.trim()) return
-    await api.post(`/api/applications/${applicationId}/notes`, { body: body.trim() })
-    setBody('')
-    onChanged()
+    run(async () => {
+      await api.post(`/api/applications/${applicationId}/notes`, { body: body.trim() })
+      setBody('')
+      onChanged()
+    })
   }
 
-  const remove = async (id: number) => {
-    await api.del(`/api/notes/${id}`)
-    onChanged()
-  }
+  const remove = (id: number) =>
+    run(async () => {
+      await api.del(`/api/notes/${id}`)
+      onChanged()
+    })
 
   return (
     <div className="section-list">
@@ -41,6 +46,11 @@ export default function NotesSection({ applicationId, notes, onChanged }: Props)
             </button>
           </span>
         </div>
+        {error && (
+          <p className="error-text" role="alert">
+            {error}
+          </p>
+        )}
       </form>
       {notes.length === 0 && <div className="empty-state">No notes yet.</div>}
       {notes.map((note) => (

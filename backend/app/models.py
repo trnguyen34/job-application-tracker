@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 
 from sqlalchemy import (
     Boolean,
@@ -44,8 +44,12 @@ def _quoted(values: tuple[str, ...]) -> str:
     return ", ".join(f"'{v}'" for v in values)
 
 
-def utcnow() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+def local_now() -> datetime:
+    """Naive local wall-clock time — the one datetime convention app-wide.
+    User-entered scheduled_at arrives as local time from datetime-local
+    inputs, and the frontend renders all timestamps as local, so stamped
+    fields must match (single user, single machine)."""
+    return datetime.now()
 
 
 class Application(Base):
@@ -73,9 +77,9 @@ class Application(Base):
     salary_currency: Mapped[str] = mapped_column(Text, nullable=False, default="USD")
     source: Mapped[str | None] = mapped_column(Text)
     priority: Mapped[str] = mapped_column(Text, nullable=False, default="medium")
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=local_now)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=utcnow, onupdate=utcnow
+        DateTime, nullable=False, default=local_now, onupdate=local_now
     )
 
     contacts: Mapped[list["Contact"]] = relationship(
@@ -108,7 +112,7 @@ class Contact(Base):
     phone: Mapped[str | None] = mapped_column(Text)
     linkedin_url: Mapped[str | None] = mapped_column(Text)
     notes: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=local_now)
 
     application: Mapped[Application] = relationship(back_populates="contacts")
 
@@ -129,7 +133,7 @@ class InterviewRound(Base):
     interviewers: Mapped[str | None] = mapped_column(Text)
     outcome: Mapped[str] = mapped_column(Text, nullable=False, default="pending")
     notes: Mapped[str | None] = mapped_column(Text)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=local_now)
 
     application: Mapped[Application] = relationship(back_populates="interview_rounds")
 
@@ -142,9 +146,9 @@ class Note(Base):
         ForeignKey("applications.id", ondelete="CASCADE"), nullable=False, index=True
     )
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=local_now)
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=utcnow, onupdate=utcnow
+        DateTime, nullable=False, default=local_now, onupdate=local_now
     )
 
     application: Mapped[Application] = relationship(back_populates="notes")
@@ -165,7 +169,7 @@ class Attachment(Base):
     file_type: Mapped[str] = mapped_column(Text, nullable=False)
     content_type: Mapped[str | None] = mapped_column(Text)
     size_bytes: Mapped[int | None] = mapped_column(Integer)
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=local_now)
 
     application: Mapped[Application] = relationship(back_populates="attachments")
 
@@ -181,6 +185,6 @@ class Reminder(Base):
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     done: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=local_now)
 
     application: Mapped[Application] = relationship(back_populates="reminders")

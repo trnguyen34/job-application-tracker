@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { errorMessage } from '../../api/client'
 
 interface Props {
   value: string | number | null
@@ -22,6 +23,7 @@ export default function InlineField({
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   const start = () => {
     setDraft(value === null ? '' : String(value))
@@ -30,13 +32,22 @@ export default function InlineField({
   }
 
   const commit = async () => {
+    if (saving) return // Enter already committed; ignore the follow-up blur
     const problem = validate?.(draft) ?? null
     if (problem) {
       setError(problem)
       return
     }
-    await onSave(draft)
-    setEditing(false)
+    setSaving(true)
+    try {
+      await onSave(draft)
+      setEditing(false)
+    } catch (err) {
+      // Stay in edit mode so the draft isn't lost; Escape still cancels.
+      setError(errorMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (!editing) {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { api } from './client'
+import { api, errorMessage } from './client'
 import type { ApplicationCard, ApplicationDetail, ReminderWithApplication, Stats } from './types'
 
 export interface Fetched<T> {
@@ -39,6 +39,23 @@ export function useFetch<T>(path: string): Fetched<T> {
 
   const refetch = useCallback(() => setTick((t) => t + 1), [])
   return { data, loading, error, refetch }
+}
+
+/** Error slot for fire-and-forget mutations (delete, toggle, select
+    changes). run() clears the previous error, runs the action, and turns a
+    failure into a user-facing message instead of an unhandled rejection —
+    without it a dead backend makes buttons silently do nothing. setError is
+    exposed so client-side validation can share the same display. */
+export function useApiAction() {
+  const [error, setError] = useState<string | null>(null)
+  const run = useCallback(
+    (action: () => Promise<void>) => {
+      setError(null)
+      return action().catch((err: unknown) => setError(errorMessage(err)))
+    },
+    [],
+  )
+  return { error, setError, run }
 }
 
 export const useApplications = () => useFetch<ApplicationCard[]>('/api/applications')

@@ -46,3 +46,27 @@ def test_existing_applied_date_is_preserved(client):
         f"/api/applications/{created['id']}/status", json={"status": "applied"}
     )
     assert response.json()["applied_date"] == "2026-01-15"
+
+
+def test_generic_patch_applies_the_same_transition_rule(client):
+    """The detail page changes status via the generic PATCH; it must stamp
+    applied_date exactly like the /status endpoint the board uses."""
+    created = create_application(client, status="wishlist", applied_date=None)
+    response = client.patch(f"/api/applications/{created['id']}", json={"status": "applied"})
+    assert response.status_code == 200
+    assert response.json()["applied_date"] == date.today().isoformat()
+
+
+def test_generic_patch_preserves_existing_applied_date(client):
+    created = create_application(client, status="wishlist", applied_date="2026-01-15")
+    response = client.patch(f"/api/applications/{created['id']}", json={"status": "applied"})
+    assert response.json()["applied_date"] == "2026-01-15"
+
+
+def test_generic_patch_explicit_applied_date_wins_over_stamp(client):
+    created = create_application(client, status="wishlist", applied_date=None)
+    response = client.patch(
+        f"/api/applications/{created['id']}",
+        json={"status": "applied", "applied_date": "2026-06-01"},
+    )
+    assert response.json()["applied_date"] == "2026-06-01"

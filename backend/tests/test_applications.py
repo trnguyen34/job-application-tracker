@@ -98,6 +98,35 @@ def test_update_application(client):
     assert body["company"] == "Acme Corp"  # untouched fields preserved
 
 
+def test_update_rejects_inverted_salary_range(client):
+    created = create_application(client)  # salary 150000–190000
+    url = f"/api/applications/{created['id']}"
+
+    # both bounds in the payload
+    assert client.patch(url, json={"salary_min": 200000, "salary_max": 100000}).status_code == 422
+    # one bound, inverted against the stored other
+    assert client.patch(url, json={"salary_min": 250000}).status_code == 422
+    assert client.patch(url, json={"salary_max": 100000}).status_code == 422
+
+    # record untouched by the rejected updates
+    body = client.get(url).json()
+    assert (body["salary_min"], body["salary_max"]) == (150000, 190000)
+
+    # valid moves still work, including clearing one bound
+    assert client.patch(url, json={"salary_min": 180000}).status_code == 200
+    assert client.patch(url, json={"salary_max": None, "salary_min": 250000}).status_code == 200
+
+
+def test_timestamps_are_local_wall_clock(client):
+    """created_at must be local time, matching user-entered scheduled_at and
+    the frontend's local rendering (regression: it was naive UTC)."""
+    from datetime import datetime
+
+    created = create_application(client)
+    created_at = datetime.fromisoformat(created["created_at"])
+    assert abs((datetime.now() - created_at).total_seconds()) < 60
+
+
 def test_delete_application(client):
     created = create_application(client)
     assert client.delete(f"/api/applications/{created['id']}").status_code == 204

@@ -23,6 +23,19 @@ def get_application_or_404(db: Session, application_id: int) -> models.Applicati
     return application
 
 
+def apply_status_change(application: models.Application, new_status: str) -> None:
+    """Single home for the transition rule, shared by the generic PATCH and
+    the /status endpoint: leaving wishlist for applied stamps applied_date,
+    unless a date is already set."""
+    if (
+        application.status == "wishlist"
+        and new_status == "applied"
+        and application.applied_date is None
+    ):
+        application.applied_date = date.today()
+    application.status = new_status
+
+
 def _to_card(application: models.Application) -> schemas.ApplicationCard:
     card = schemas.ApplicationCard.model_validate(application)
     if application.applied_date is not None:
@@ -92,8 +105,20 @@ def update_application(
     application_id: int, payload: schemas.ApplicationUpdate, db: Session = Depends(get_db)
 ):
     application = get_application_or_404(db, application_id)
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    updates = payload.model_dump(exclude_unset=True)
+
+    # Validate the merged salary range: a partial update can invert it even
+    # when each payload value is valid on its own.
+    new_min = updates.get("salary_min", application.salary_min)
+    new_max = updates.get("salary_max", application.salary_max)
+    if new_min is not None and new_max is not None and new_min > new_max:
+        raise HTTPException(status_code=422, detail="salary_min must be <= salary_max")
+
+    new_status = updates.pop("status", None)
+    for field, value in updates.items():
         setattr(application, field, value)
+    if new_status is not None:
+        apply_status_change(application, new_status)
     db.commit()
     db.refresh(application)
     return application
@@ -114,10 +139,7 @@ def update_status(
     application_id: int, payload: schemas.StatusUpdate, db: Session = Depends(get_db)
 ):
     application = get_application_or_404(db, application_id)
-    moving_to_applied = application.status == "wishlist" and payload.status == "applied"
-    application.status = payload.status
-    if moving_to_applied and application.applied_date is None:
-        application.applied_date = date.today()
+    apply_status_change(application, payload.status)
     db.commit()
     db.refresh(application)
     return application
