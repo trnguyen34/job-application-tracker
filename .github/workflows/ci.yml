@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+
+jobs:
+  backend:
+    name: backend · pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      # Cache the whole virtualenv, keyed on requirements.txt. On a cache hit
+      # skip the install entirely; it only rebuilds when dependencies change.
+      # Bump the `v1` salt to force a rebuild.
+      - name: Cache virtualenv
+        id: venv-cache
+        uses: actions/cache@v4
+        with:
+          path: backend/.venv
+          key: venv-v1-${{ runner.os }}-py3.14-${{ hashFiles('backend/requirements.txt') }}
+
+      - name: Install dependencies
+        if: steps.venv-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m venv backend/.venv
+          backend/.venv/bin/python -m pip install --upgrade pip
+          backend/.venv/bin/pip install -r backend/requirements.txt
+
+      # Put the venv on PATH so pytest resolves from it (hit or miss).
+      - name: Activate virtualenv
+        run: echo "$PWD/backend/.venv/bin" >> "$GITHUB_PATH"
+
+      # Tests run against an in-memory SQLite and a temp uploads dir,
+      # so no database service is needed.
+      - name: Run tests
+        working-directory: backend
+        run: pytest tests -q
+
+  frontend:
+    name: frontend · types · tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `npm run build` runs `tsc -b` before bundling — this is the
+      # type check (noUnusedLocals etc. fail the build).
+      - name: Type check + build
+        run: npm run build
+
+      - name: Run tests
+        run: npm run test -- --run
