@@ -29,10 +29,6 @@ export function isOverdue(dueDate: string): boolean {
   return dueDate.slice(0, 10) < todayISO()
 }
 
-export function isToday(dueDate: string): boolean {
-  return dueDate.slice(0, 10) === todayISO()
-}
-
 /** "Jul 3", with the year appended when it isn't the current year. */
 export function shortDate(iso: string): string {
   const d = toDate(iso)

@@ -1,12 +1,18 @@
-# trackrecord — job application tracker
+# Job Tracker
 
 A single-user job application tracker that runs entirely on your machine.
-Kanban pipeline with drag-and-drop, application details with contacts /
-interviews / notes / reminders / file attachments, a stats dashboard, and
-CSV import/export. No accounts, no cloud — one SQLite file.
+Kanban pipeline with drag-and-drop (five active columns plus a grouped
+Closed column), application details with contacts / interview rounds /
+notes / reminders / file attachments, a stats dashboard with a GitHub-style
+activity heatmap, light & dark themes, and CSV import/export via the API.
+No accounts, no cloud — one SQLite file.
 
 **Stack:** FastAPI + SQLAlchemy 2 + SQLite backend · React 19 + Vite +
-TypeScript frontend · Recharts · dnd-kit.
+TypeScript frontend · dnd-kit · pure-CSS charts.
+
+The UI implements the "Job Tracker" design from the claude.ai/design
+project `Job Application Tracker` (`Job Tracker.dc.html`); design tokens
+live in `frontend/src/styles/tokens.css`.
 
 ## Quick start
 
@@ -53,6 +59,10 @@ evolves later, introduce Alembic with a baseline autogenerate revision.
   `backend/.venv` — never globally.
 
 ## Frontend redesign plan — match `Job Tracker.dc.html`
+
+> **Status: implemented** (July 2026). The plan below is kept as the
+> record of what was built and why. CSV import/export survives as API
+> endpoints only (`/api/export/csv`, `/api/import/csv`).
 
 **Design source:** the claude.ai/design project “Job Application Tracker”
 (`ba324b28-3e34-4556-92d3-e7aeb3a52ed6`), file `Job Tracker.dc.html`
