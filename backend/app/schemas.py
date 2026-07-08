@@ -72,6 +72,7 @@ class ApplicationUpdate(BaseModel):
     salary_currency: str | None = None
     source: str | None = None
     priority: Priority | None = None
+    stale_snoozed_until: date | None = None
 
 
 class StatusUpdate(BaseModel):
@@ -92,6 +93,7 @@ class ApplicationRead(ORMModel):
     salary_currency: str
     source: str | None
     priority: Priority
+    stale_snoozed_until: date | None
     created_at: datetime
     updated_at: datetime
 

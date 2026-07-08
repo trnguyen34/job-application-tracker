@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useStats } from '../api/hooks'
+import StaleApplicationsCheck from '../components/board/StaleApplicationsCheck'
 import ActivityHeatmap from '../components/dashboard/ActivityHeatmap'
 import FollowUps from '../components/dashboard/FollowUps'
 import FunnelBars from '../components/dashboard/FunnelBars'
@@ -10,11 +11,12 @@ import ThemeToggle from '../components/ui/ThemeToggle'
 import '../styles/dashboard.css'
 
 export default function DashboardPage() {
-  const { data: stats, loading, error } = useStats()
+  const { data: stats, loading, error, refetch } = useStats()
   const navigate = useNavigate()
 
   return (
     <div className="view">
+      <StaleApplicationsCheck onMutated={refetch} />
       <div className="top-bar">
         <button className="crumb-link" onClick={() => navigate('/')}>
           Board

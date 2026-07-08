@@ -310,6 +310,64 @@ textarea:focus {
   font-weight: 600;
 }
 
+/* Stale-applications launch prompt */
+
+.stale-card {
+  width: 640px;
+}
+
+.stale-intro {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 6px 0 14px;
+}
+
+.stale-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.stale-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stale-company {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stale-role {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.stale-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.stale-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.stale-snooze {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  padding: 6px 8px;
+  border-radius: 12px;
+}
+
 /* ---- Combobox (location autocomplete) ------------------------------------ */
 
 .combo {

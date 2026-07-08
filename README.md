@@ -132,6 +132,23 @@ priority to **High**. The location field suggests every US city in
 still works for anything else. Creating drops you straight into the
 application modal — add contacts and interview rounds from there.
 
+### The launch check
+
+![Stale applications prompt](docs/screenshots/stale-check.png)
+
+Every time the app opens, it looks for applications that have been
+sitting in **Applied for 3+ months** (by applied date) and lists them in
+a prompt, oldest first. For each one you can:
+
+- **Move to Ghosted** — closes it out; three silent months is what
+  Ghosted means here.
+- **Delete** — removes the application entirely (after a confirmation).
+- **Ignore for…** 1 week, 1 month, or 3 months — hides it from the
+  check until then; when the snooze lapses it shows up again.
+
+**Decide later** dismisses the prompt until the next launch without
+touching anything.
+
 ### The dashboard
 
 ![Dashboard](docs/screenshots/dashboard.png)

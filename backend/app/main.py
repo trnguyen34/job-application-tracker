@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import models  # noqa: F401 — registers tables on Base.metadata
-from .database import Base, engine
+from .database import Base, engine, ensure_columns
 from .routers import (
     applications,
     attachments,
@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
     # Schema is auto-created rather than migrated: single-user local SQLite
     # with no deployed data. Alembic can be baselined later if needed.
     Base.metadata.create_all(engine)
+    ensure_columns(engine)  # backfill columns added after a table shipped
     yield
 
 
