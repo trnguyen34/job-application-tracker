@@ -387,7 +387,6 @@ textarea:focus {
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--text-muted);
-  padding-right: 8px;
 }
 
 .stale-snooze:hover {
