@@ -7,12 +7,13 @@ notes / reminders / file attachments, a stats dashboard with a GitHub-style
 activity heatmap, light & dark themes, and CSV import/export via the API.
 No accounts, no cloud — one SQLite file.
 
-**Stack:** FastAPI + SQLAlchemy 2 + SQLite backend · React 19 + Vite +
-TypeScript frontend · dnd-kit · pure-CSS charts.
+**Stack**
 
-The UI implements the "Job Tracker" design from the claude.ai/design
-project `Job Application Tracker` (`Job Tracker.dc.html`); design tokens
-live in `frontend/src/styles/tokens.css`.
+- **Backend:** FastAPI · SQLAlchemy 2 · Pydantic 2 · SQLite — one file,
+  no external services
+- **Frontend:** React 19 · TypeScript · Vite · React Router 7 · dnd-kit —
+  the dashboard charts are pure CSS, no chart library
+- **Tests:** pytest (API) · Vitest + Testing Library (components)
 
 ## Quick start
 
