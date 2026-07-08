@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import ApplicationDetailPage from '../pages/ApplicationDetailPage'
-import InlineField from '../components/detail/InlineField'
+import { ToastProvider } from '../components/ui/Toast'
 import { api } from '../api/client'
 import { baseCard } from './fixtures'
 import type { ApplicationDetail } from '../api/types'
@@ -31,133 +31,110 @@ const detail: ApplicationDetail = {
 
 const renderDetail = () =>
   render(
-    <MemoryRouter initialEntries={['/applications/1']}>
-      <Routes>
-        <Route path="/applications/:id" element={<ApplicationDetailPage />} />
-      </Routes>
-    </MemoryRouter>,
+    <ToastProvider>
+      <MemoryRouter initialEntries={['/applications/1']}>
+        <Routes>
+          <Route path="/applications/:id" element={<ApplicationDetailPage />} />
+          <Route path="/" element={<div>BOARD HOME</div>} />
+        </Routes>
+      </MemoryRouter>
+    </ToastProvider>,
   )
-
-describe('InlineField validation', () => {
-  it('blocks saving an invalid value and shows the message', async () => {
-    const onSave = vi.fn()
-    render(
-      <InlineField
-        value="Acme"
-        validate={(raw) => (raw.trim() ? null : 'Company is required.')}
-        onSave={onSave}
-      />,
-    )
-    await userEvent.click(screen.getByRole('button'))
-    const input = screen.getByRole('textbox')
-    await userEvent.clear(input)
-    await userEvent.keyboard('{Enter}')
-
-    expect(screen.getByRole('alert')).toHaveTextContent('Company is required.')
-    expect(onSave).not.toHaveBeenCalled()
-  })
-
-  it('saves a valid value on Enter', async () => {
-    const onSave = vi.fn()
-    render(<InlineField value="Acme" onSave={onSave} />)
-    await userEvent.click(screen.getByRole('button'))
-    await userEvent.clear(screen.getByRole('textbox'))
-    await userEvent.type(screen.getByRole('textbox'), 'New Co{Enter}')
-    expect(onSave).toHaveBeenCalledWith('New Co')
-  })
-})
 
 describe('ApplicationDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(api.get).mockResolvedValue(detail)
     vi.mocked(api.patch).mockResolvedValue({})
+    vi.mocked(api.del).mockResolvedValue(undefined)
   })
 
-  it('renders the application and PATCHes an inline company edit', async () => {
+  it('renders the application header and facts', async () => {
     renderDetail()
-    expect(await screen.findByText('Acme Corp')).toBeInTheDocument()
-
-    await userEvent.click(screen.getByText('Acme Corp'))
-    const input = screen.getByDisplayValue('Acme Corp')
-    await userEvent.clear(input)
-    await userEvent.type(input, 'Acme Holdings{Enter}')
-
-    expect(api.patch).toHaveBeenCalledWith('/api/applications/1', {
-      company: 'Acme Holdings',
-    })
+    expect(await screen.findByRole('heading', { name: 'Acme Corp' })).toBeInTheDocument()
+    expect(screen.getByText('Backend Engineer')).toBeInTheDocument()
+    expect(screen.getByText('$150k–$190k')).toBeInTheDocument()
   })
 
-  it('rejects an inverted salary range', async () => {
+  it('saves the Details edit form in a single PATCH', async () => {
     renderDetail()
-    await screen.findByText('Acme Corp')
+    await screen.findByRole('heading', { name: 'Acme Corp' })
 
-    await userEvent.click(screen.getByText(/150,000/))
-    const input = screen.getByRole('textbox')
-    await userEvent.clear(input)
-    await userEvent.type(input, '200000-100000{Enter}')
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    const company = screen.getByLabelText('Company')
+    await userEvent.clear(company)
+    await userEvent.type(company, 'Acme Holdings')
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Min must be ≤ max.')
-    expect(api.patch).not.toHaveBeenCalled()
-  })
-
-  it('PATCHes a status change from the select', async () => {
-    renderDetail()
-    await screen.findByText('Acme Corp')
-    await userEvent.selectOptions(screen.getByLabelText('Status'), 'interview')
-    expect(api.patch).toHaveBeenCalledWith('/api/applications/1', { status: 'interview' })
-  })
-
-  it('keeps the draft and shows the message when an inline save fails', async () => {
-    vi.mocked(api.patch).mockRejectedValue(new Error('Request failed with status 500'))
-    renderDetail()
-    await screen.findByText('Acme Corp')
-
-    await userEvent.click(screen.getByText('Acme Corp'))
-    const input = screen.getByDisplayValue('Acme Corp')
-    await userEvent.clear(input)
-    await userEvent.type(input, 'New Co{Enter}')
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Request failed with status 500',
-    )
-    // still editing, draft intact
-    expect(screen.getByDisplayValue('New Co')).toBeInTheDocument()
-  })
-
-  it('surfaces a failed status change instead of ignoring it', async () => {
-    vi.mocked(api.patch).mockRejectedValue(new Error('Request failed with status 500'))
-    renderDetail()
-    await screen.findByText('Acme Corp')
-
-    await userEvent.selectOptions(screen.getByLabelText('Status'), 'interview')
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Request failed with status 500',
+    expect(api.patch).toHaveBeenCalledTimes(1)
+    expect(api.patch).toHaveBeenCalledWith(
+      '/api/applications/1',
+      expect.objectContaining({
+        company: 'Acme Holdings',
+        role: 'Backend Engineer',
+        salary_min: 150000,
+        salary_max: 190000,
+        salary_currency: 'USD',
+      }),
     )
   })
 
-  it('links an absolute job URL by hostname', async () => {
-    vi.mocked(api.get).mockResolvedValue({
-      ...detail,
-      job_url: 'https://stripe.com/jobs/listing/backend',
+  it('changes status through the pill menu via the /status endpoint', async () => {
+    renderDetail()
+    await screen.findByRole('heading', { name: 'Acme Corp' })
+
+    await userEvent.click(screen.getByRole('button', { name: /Applied ▾/ }))
+    await userEvent.click(screen.getByRole('menuitem', { name: '● Interview' }))
+
+    expect(api.patch).toHaveBeenCalledWith('/api/applications/1/status', {
+      status: 'interview',
     })
-    renderDetail()
-    const link = await screen.findByRole('link', { name: 'stripe.com ↗' })
-    expect(link).toHaveAttribute('href', 'https://stripe.com/jobs/listing/backend')
   })
 
-  it('links a scheme-less job URL instead of crashing', async () => {
-    vi.mocked(api.get).mockResolvedValue({ ...detail, job_url: 'stripe.com/jobs' })
+  it('sets priority from the segmented control', async () => {
     renderDetail()
-    const link = await screen.findByRole('link', { name: 'stripe.com ↗' })
-    expect(link).toHaveAttribute('href', 'https://stripe.com/jobs')
+    await screen.findByRole('heading', { name: 'Acme Corp' })
+    await userEvent.click(screen.getByRole('button', { name: 'Med' }))
+    expect(api.patch).toHaveBeenCalledWith('/api/applications/1', { priority: 'medium' })
   })
 
-  it('shows an unparseable job URL as plain text, not a link', async () => {
-    vi.mocked(api.get).mockResolvedValue({ ...detail, job_url: 'ask Maya for the link' })
+  it('shows a toast and stays in edit mode when saving fails', async () => {
+    vi.mocked(api.patch).mockRejectedValue(new Error('salary_min must be <= salary_max'))
     renderDetail()
-    expect(await screen.findByText('ask Maya for the link')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /↗/ })).not.toBeInTheDocument()
+    await screen.findByRole('heading', { name: 'Acme Corp' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'salary_min must be <= salary_max',
+    )
+    expect(screen.getByLabelText('Company')).toBeInTheDocument()
+  })
+
+  it('deletes the application after confirmation and returns to the board', async () => {
+    renderDetail()
+    await screen.findByRole('heading', { name: 'Acme Corp' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    const dialog = screen.getByRole('alertdialog')
+    expect(dialog).toHaveTextContent('Delete Acme Corp — Backend Engineer?')
+    expect(dialog).toHaveTextContent(/removes all of its contacts/)
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    expect(api.del).toHaveBeenCalledWith('/api/applications/1')
+    expect(await screen.findByText('BOARD HOME')).toBeInTheDocument()
+  })
+
+  it('cancelling the delete dialog makes no request', async () => {
+    renderDetail()
+    await screen.findByRole('heading', { name: 'Acme Corp' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(api.del).not.toHaveBeenCalled()
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
   })
 })
