@@ -383,10 +383,6 @@ textarea:focus {
   background: var(--tint-weak);
 }
 
-.stale-snooze-wrap {
-  position: relative;
-}
-
 .stale-snooze {
   border: 1px solid var(--border-strong);
   background: var(--surface);
@@ -398,18 +394,18 @@ textarea:focus {
   background: var(--tint-weak);
 }
 
-/* Same dropdown recipe as the detail modal's status-pill menu. */
+/* Same dropdown recipe as the detail modal's status-pill menu, but fixed
+   to the viewport (anchored via inline top/bottom/right from the trigger's
+   rect) so the modal card's overflow scroll never clips it. */
 .stale-snooze-menu {
-  position: absolute;
-  top: 38px;
-  right: 0;
+  position: fixed;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 12px;
   box-shadow: 0 10px 28px var(--border-strong);
   padding: 8px;
   width: 148px;
-  z-index: 30;
+  z-index: 60;
 }
 
 .stale-snooze-option {

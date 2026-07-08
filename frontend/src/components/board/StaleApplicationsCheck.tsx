@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { api, errorMessage } from '../../api/client'
 import type { ApplicationCard } from '../../api/types'
 import { addDaysISO, shortDate } from '../../lib/dates'
@@ -10,6 +10,14 @@ const SNOOZE_OPTIONS = [
   { label: '1 month', days: 30 },
   { label: '3 months', days: 90 },
 ]
+
+// Room the open menu needs (3 options + padding), for the flip-up check.
+const MENU_HEIGHT = 140
+
+interface MenuAnchor {
+  id: number
+  pos: { top?: number; bottom?: number; right: number }
+}
 
 // One check per app launch: module state survives route changes but resets
 // on a full page load — "every time the user opens the app". Whichever page
@@ -33,8 +41,25 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
   const [stale, setStale] = useState<ApplicationCard[]>([])
   const [open, setOpen] = useState(false)
   const [deleting, setDeleting] = useState<ApplicationCard | null>(null)
-  const [menuFor, setMenuFor] = useState<number | null>(null)
+  const [menuFor, setMenuFor] = useState<MenuAnchor | null>(null)
   const toast = useToast()
+
+  // The modal card scrolls (overflow-y), which would clip an absolutely
+  // positioned menu on the last row — so the menu is position: fixed,
+  // anchored to the trigger's rect, flipping upward near the viewport edge.
+  const toggleMenu = (card: ApplicationCard, e: MouseEvent<HTMLButtonElement>) => {
+    if (menuFor?.id === card.id) {
+      setMenuFor(null)
+      return
+    }
+    const rect = e.currentTarget.getBoundingClientRect()
+    const right = window.innerWidth - rect.right
+    const pos =
+      rect.bottom + 6 + MENU_HEIGHT > window.innerHeight
+        ? { bottom: window.innerHeight - rect.top + 6, right }
+        : { top: rect.bottom + 6, right }
+    setMenuFor({ id: card.id, pos })
+  }
 
   useEffect(() => {
     if (checkedThisLaunch) return
@@ -96,7 +121,12 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
 
   return (
     <div className="overlay top-aligned">
-      <div className="modal-card stale-card" role="dialog" aria-label="Stale applications">
+      <div
+        className="modal-card stale-card"
+        role="dialog"
+        aria-label="Stale applications"
+        onScroll={() => setMenuFor(null)}
+      >
         <div className="modal-title">Still waiting to hear back?</div>
         <div className="stale-intro">
           {stale.length === 1
@@ -125,7 +155,7 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
                 className="stale-snooze-wrap"
                 onBlur={(e) => {
                   if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                    setMenuFor((m) => (m === card.id ? null : m))
+                    setMenuFor((m) => (m?.id === card.id ? null : m))
                   }
                 }}
                 onKeyDown={(e) => {
@@ -136,14 +166,14 @@ export default function StaleApplicationsCheck({ onMutated }: Props) {
                   type="button"
                   className="stale-snooze"
                   aria-haspopup="menu"
-                  aria-expanded={menuFor === card.id}
+                  aria-expanded={menuFor?.id === card.id}
                   aria-label={`Ignore ${card.company} for`}
-                  onClick={() => setMenuFor((m) => (m === card.id ? null : card.id))}
+                  onClick={(e) => toggleMenu(card, e)}
                 >
                   Ignore for… ▾
                 </button>
-                {menuFor === card.id && (
-                  <div className="stale-snooze-menu" role="menu">
+                {menuFor?.id === card.id && (
+                  <div className="stale-snooze-menu" role="menu" style={menuFor.pos}>
                     {SNOOZE_OPTIONS.map((option) => (
                       <button
                         key={option.days}
