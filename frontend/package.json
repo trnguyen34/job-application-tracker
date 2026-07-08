@@ -11,14 +11,15 @@
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",
+    "@fontsource-variable/newsreader": "^5.2.10",
+    "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-router-dom": "7.18.1",
     "recharts": "3.9.2"
   },
   "devDependencies": {
-    "@fontsource-variable/bricolage-grotesque": "^5.2.10",
-    "@fontsource-variable/inter": "^5.2.8",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "^14.6.1",

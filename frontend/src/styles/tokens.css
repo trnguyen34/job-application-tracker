@@ -1,60 +1,133 @@
-/* Design tokens — dark "ink" theme.
-   Chart-facing colors follow the validated dark-surface palette so UI chrome
-   and dataviz read as one system. */
+/* Design tokens ported from the Job Tracker design (claude.ai/design
+   project "Job Application Tracker", Job Tracker.dc.html). Light is the
+   default; [data-theme="dark"] overrides. Accent-derived tints are
+   precomputed from the prototype's tint()/shade()/mixHex() helpers with
+   the default terracotta accent, so changing the accent means recomputing
+   the derived values below. */
 
 :root {
-  /* Surfaces */
-  --page: #0d0d0d;
-  --surface-1: #1a1a19;
-  --surface-2: #232322;
-  --surface-3: #2c2c2a;
+  color-scheme: light;
 
-  /* Ink */
-  --ink: #ffffff;
-  --ink-secondary: #c3c2b7;
-  --ink-muted: #898781;
+  /* Theme surfaces & ink */
+  --bg: #f6f2ea;
+  --surface: #ffffff;
+  --surface-alt: #fbf9f5;
+  --column-bg: #efeae0;
+  --text: #211d17;
+  --text-muted: #6f6656;
+  --text-faint: #9a917e;
+  --border: rgba(33, 29, 23, 0.1);
+  --border-strong: rgba(33, 29, 23, 0.16);
+  --overlay: rgba(33, 29, 23, 0.45);
+  --tint-weak: rgba(33, 29, 23, 0.06);
+  --disabled-bg: #e4dfd3;
 
-  /* Lines */
-  --hairline: rgba(255, 255, 255, 0.1);
-  --gridline: #2c2c2a;
-  --baseline: #383835;
+  /* Accent (design default #B5502E) and precomputed derivations */
+  --accent: #b5502e;
+  --accent-hover: #9c4325;
+  --accent-contrast: #fbf3ec; /* text on accent */
+  --accent-tint-86: rgb(245, 231, 226); /* priority-high active bg */
+  --accent-tint-87: rgb(245, 232, 228); /* next-event chip bg */
+  --accent-tint-88: rgb(246, 234, 230); /* column drag-over bg */
+  --accent-chip-fg: rgb(172, 76, 44); /* shade(accent, 0.05) */
+  --accent-shadow: rgba(207, 141, 119, 0.45); /* new-application button */
+  --focus-ring: rgba(181, 80, 46, 0.25);
 
-  /* The one saturated accent — interaction only */
-  --accent: #eda100;
-  --accent-ink: #0d0d0d;
-  --accent-soft: rgba(237, 161, 0, 0.14);
+  /* Status colors: fg = dot/pill text, tint = pill/column background.
+     Tints stay light in both themes (badges keep their color identity). */
+  --status-wishlist-fg: #5b6472;
+  --status-wishlist-tint: #eef0f2;
+  --status-applied-fg: #2f6690;
+  --status-applied-tint: #e7eff3;
+  --status-phone_screen-fg: #9c6b14;
+  --status-phone_screen-tint: #f5ebd7;
+  --status-interview-fg: #7a4a93;
+  --status-interview-tint: #f0e6f4;
+  --status-offer-fg: #3e8768;
+  --status-offer-tint: #e3f1ea;
+  --status-accepted-fg: #2b7a4b;
+  --status-accepted-tint: #e1f2e6;
+  --status-rejected-fg: #b14a3d;
+  --status-rejected-tint: #f7e7e3;
+  --status-withdrawn-fg: #847b6c;
+  --status-withdrawn-tint: #efebe2;
+  --status-ghosted-fg: #71698a;
+  --status-ghosted-tint: #eae7f0;
 
-  /* Status pipeline hues (categorical dark-surface slots, fixed mapping) */
-  --status-wishlist: #9085e9;
-  --status-applied: #3987e5;
-  --status-phone_screen: #1baf7a;
-  --status-interview: #eda100;
-  --status-offer: #d95926;
-  --status-accepted: #0ca30c;
-  --status-rejected: #e66767;
-  --status-withdrawn: #d55181;
-  --status-ghosted: #898781;
+  /* Board column backgrounds (dark theme mixes status fg into the surface) */
+  --column-wishlist: var(--status-wishlist-tint);
+  --column-applied: var(--status-applied-tint);
+  --column-phone_screen: var(--status-phone_screen-tint);
+  --column-interview: var(--status-interview-tint);
+  --column-offer: var(--status-offer-tint);
+  --column-closed: var(--status-withdrawn-tint);
 
-  /* Semantic */
-  --danger: #e66767;
-  --good: #0ca30c;
+  /* Danger (delete affordances) */
+  --danger-fg: #b14a3d;
+  --danger-bg: #fbefec;
+  --danger-border: rgba(177, 74, 61, 0.3);
 
-  /* Type */
-  --font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
-  --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Priority */
+  --priority-medium-dot: #b8aa8c;
+  --priority-medium-bg: #f5ebd7;
+  --priority-medium-fg: #9c6b14;
+  --priority-low-bg: #efebe2;
 
-  /* Scale */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
+  /* Interview outcome badges */
+  --outcome-pending-bg: #eef0f2;
+  --outcome-pending-fg: #5b6472;
+  --outcome-passed-bg: #e1f2e6;
+  --outcome-passed-fg: #2b7a4b;
+  --outcome-failed-bg: #f7e7e3;
+  --outcome-failed-fg: #b14a3d;
+  --outcome-cancelled-bg: #efebe2;
+  --outcome-cancelled-fg: #847b6c;
 
-  --radius-s: 6px;
-  --radius-m: 10px;
-  --radius-l: 14px;
+  /* Attachment extension badge */
+  --file-badge-bg: #f1e4dc;
+  --file-badge-fg: #8c4a2e;
 
-  --shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.45);
+  /* Activity heatmap levels (0 = empty day) */
+  --contrib-0: rgba(33, 29, 23, 0.07);
+  --contrib-1: rgb(239, 217, 209);
+  --contrib-2: rgb(222, 176, 161);
+  --contrib-3: rgb(203, 133, 109);
+  --contrib-4: rgb(185, 89, 56);
+
+  /* Typography */
+  --font-sans: 'Space Grotesk Variable', 'Space Grotesk', sans-serif;
+  --font-serif: 'Newsreader Variable', 'Newsreader', serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #1a1815;
+  --surface: #242019;
+  --surface-alt: #1f1c17;
+  --column-bg: #201d18;
+  --text: #f1ebe0;
+  --text-muted: #b7ad9a;
+  --text-faint: #8c8271;
+  --border: rgba(241, 235, 224, 0.1);
+  --border-strong: rgba(241, 235, 224, 0.18);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --tint-weak: rgba(241, 235, 224, 0.08);
+  --disabled-bg: #35322b;
+
+  /* mixHex(status fg, #201D18, 0.88) */
+  --column-wishlist: rgb(39, 38, 35);
+  --column-applied: rgb(34, 38, 38);
+  --column-phone_screen: rgb(47, 38, 24);
+  --column-interview: rgb(43, 34, 39);
+  --column-offer: rgb(36, 42, 34);
+  --column-closed: rgb(44, 40, 34);
+
+  /* mixHex(accent, #201D18, [0.72, 0.48, 0.24, 0]) */
+  --contrib-0: rgba(255, 255, 255, 0.06);
+  --contrib-1: rgb(74, 43, 30);
+  --contrib-2: rgb(109, 56, 35);
+  --contrib-3: rgb(145, 68, 41);
+  --contrib-4: #b5502e;
 }
