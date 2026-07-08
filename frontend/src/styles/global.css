@@ -383,15 +383,27 @@ textarea:focus {
   background: var(--tint-weak);
 }
 
+/* Native select arrows hug the border at a browser-fixed inset, so draw
+   our own chevron 14px in — mirroring the 14px label inset on the left.
+   The SVG stroke can't read CSS vars; each theme sets its --text-muted. */
 .stale-snooze {
+  appearance: none;
   border: 1px solid var(--border-strong);
-  background: var(--surface);
+  background-color: var(--surface);
   color: var(--text-muted);
+  padding: 0 32px 0 14px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="%236f6656" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+[data-theme='dark'] .stale-snooze {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" fill="none" stroke="%23b7ad9a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
 }
 
 .stale-snooze:hover {
   color: var(--text);
-  background: var(--tint-weak);
+  background-color: var(--tint-weak);
 }
 
 .stale-delete {
