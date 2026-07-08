@@ -54,32 +54,54 @@ export default function ActivityHeatmap({ perDay }: Props) {
     monthRow.push({ key: `m${w}`, label: weekLabel })
   }
 
+  const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', '']
+
   return (
     <>
       <div className="contrib-summary">
         {total} {total === 1 ? 'application' : 'applications'} submitted in the last year
       </div>
+      {/* One grid holds labels and cells: a max-content label column plus
+          53 fluid week columns, so the squares stretch with the panel and
+          the labels stay aligned at any width. */}
       <div className="contrib-scroller">
-        <div className="contrib-day-labels">
-          <div />
-          <div>Mon</div>
-          <div />
-          <div>Wed</div>
-          <div />
-          <div>Fri</div>
-          <div />
-        </div>
-        <div className="contrib-grid-wrap">
-          <div className="contrib-month-row">
-            {monthRow.map((m) => (
-              <span key={m.key}>{m.label}</span>
-            ))}
-          </div>
-          <div className="contrib-grid" data-testid="activity-heatmap">
-            {cells.map((cell) => (
-              <div key={cell.key} title={cell.title} style={{ background: cell.background }} />
-            ))}
-          </div>
+        <div className="contrib-grid" data-testid="activity-heatmap">
+          {DAY_LABELS.map(
+            (label, d) =>
+              label && (
+                <span
+                  key={`day-${label}`}
+                  className="contrib-day"
+                  style={{ gridRow: d + 2, gridColumn: 1 }}
+                >
+                  {label}
+                </span>
+              ),
+          )}
+          {monthRow.map(
+            (m, w) =>
+              m.label && (
+                <span
+                  key={m.key}
+                  className="contrib-month"
+                  style={{ gridRow: 1, gridColumn: w + 2 }}
+                >
+                  {m.label}
+                </span>
+              ),
+          )}
+          {cells.map((cell, i) => (
+            <div
+              key={cell.key}
+              className="contrib-cell"
+              title={cell.title}
+              style={{
+                background: cell.background,
+                gridRow: (i % 7) + 2,
+                gridColumn: Math.floor(i / 7) + 2,
+              }}
+            />
+          ))}
         </div>
       </div>
       <div className="contrib-legend">

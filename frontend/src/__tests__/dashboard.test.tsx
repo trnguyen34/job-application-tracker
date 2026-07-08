@@ -70,7 +70,8 @@ describe('DashboardPage', () => {
   it('renders the 53-week activity heatmap from applications_per_day', async () => {
     renderPage()
     const grid = await screen.findByTestId('activity-heatmap')
-    expect(grid.children).toHaveLength(53 * 7)
+    expect(grid.querySelectorAll('.contrib-cell')).toHaveLength(53 * 7)
+    expect(grid.querySelectorAll('.contrib-day')).toHaveLength(3) // Mon/Wed/Fri
     expect(screen.getByText('3 applications submitted in the last year')).toBeInTheDocument()
     const busy = within(grid).getByTitle(`${daysAgo(1)}: 2 applications`)
     expect(busy).toBeInTheDocument()
