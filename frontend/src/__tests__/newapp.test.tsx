@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import NewApplicationModal from '../components/board/NewApplicationModal'
@@ -20,7 +20,9 @@ vi.mock('../api/client', async (importOriginal) => ({
 describe('NewApplicationModal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(api.post).mockResolvedValue({ id: 9 })
+    vi.mocked(api.post).mockImplementation((path: string) =>
+      path === '/api/applications' ? Promise.resolve({ id: 9 }) : Promise.resolve({}),
+    )
   })
 
   it('defaults the status to Applied and stamps today as the applied date', async () => {
@@ -54,5 +56,89 @@ describe('NewApplicationModal', () => {
       '/api/applications',
       expect.objectContaining({ status: 'wishlist', applied_date: null }),
     )
+  })
+
+  it('creates added contacts after the application', async () => {
+    const onCreated = vi.fn()
+    render(<NewApplicationModal onClose={vi.fn()} onCreated={onCreated} />)
+
+    await userEvent.click(screen.getByRole('button', { name: '+ Add contact' }))
+    const addContact = screen.getByRole('button', { name: 'Add contact' })
+    expect(addContact).toBeDisabled()
+    await userEvent.type(screen.getByPlaceholderText('Name'), 'Priya Nair')
+    await userEvent.type(screen.getByPlaceholderText('Email'), 'priya@acme.example')
+    await userEvent.click(addContact)
+
+    expect(screen.getByText('Priya Nair')).toBeInTheDocument()
+
+    await userEvent.type(screen.getByPlaceholderText('Company *'), 'Acme')
+    await userEvent.type(screen.getByPlaceholderText('Role / title *'), 'Engineer')
+    await userEvent.click(screen.getByRole('button', { name: 'Add to Applied' }))
+
+    await waitFor(() =>
+      expect(api.post).toHaveBeenCalledWith(
+        '/api/applications/9/contacts',
+        expect.objectContaining({ name: 'Priya Nair', email: 'priya@acme.example' }),
+      ),
+    )
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 9 }))
+  })
+
+  it('offers interview rounds only for Phone Screen and Interview statuses', async () => {
+    render(<NewApplicationModal onClose={vi.fn()} onCreated={vi.fn()} />)
+
+    expect(screen.queryByText('Interview rounds')).not.toBeInTheDocument()
+
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'phone_screen')
+    expect(screen.getByText('Interview rounds')).toBeInTheDocument()
+
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'interview')
+    expect(screen.getByText('Interview rounds')).toBeInTheDocument()
+
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'applied')
+    expect(screen.queryByText('Interview rounds')).not.toBeInTheDocument()
+  })
+
+  it('creates added rounds when the status is Phone Screen', async () => {
+    render(<NewApplicationModal onClose={vi.fn()} onCreated={vi.fn()} />)
+
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'phone_screen')
+    await userEvent.click(screen.getByRole('button', { name: '+ Add interview round' }))
+    await userEvent.selectOptions(screen.getByLabelText('Round type'), 'technical')
+    await userEvent.type(screen.getByPlaceholderText('Interviewer(s)'), 'Dev Patel')
+    await userEvent.click(screen.getByRole('button', { name: 'Add round' }))
+
+    expect(screen.getByText('Technical')).toBeInTheDocument()
+
+    await userEvent.type(screen.getByPlaceholderText('Company *'), 'Acme')
+    await userEvent.type(screen.getByPlaceholderText('Role / title *'), 'Engineer')
+    await userEvent.click(screen.getByRole('button', { name: 'Add to Phone Screen' }))
+
+    await waitFor(() =>
+      expect(api.post).toHaveBeenCalledWith(
+        '/api/applications/9/interviews',
+        expect.objectContaining({ round_type: 'technical', interviewers: 'Dev Patel' }),
+      ),
+    )
+  })
+
+  it('does not create rounds when the status no longer allows them', async () => {
+    render(<NewApplicationModal onClose={vi.fn()} onCreated={vi.fn()} />)
+
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'phone_screen')
+    await userEvent.click(screen.getByRole('button', { name: '+ Add interview round' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Add round' }))
+
+    await userEvent.selectOptions(screen.getByLabelText('Status'), 'applied')
+
+    await userEvent.type(screen.getByPlaceholderText('Company *'), 'Acme')
+    await userEvent.type(screen.getByPlaceholderText('Role / title *'), 'Engineer')
+    await userEvent.click(screen.getByRole('button', { name: 'Add to Applied' }))
+
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith('/api/applications', expect.anything()))
+    const interviewCalls = vi
+      .mocked(api.post)
+      .mock.calls.filter(([path]) => String(path).includes('/interviews'))
+    expect(interviewCalls).toHaveLength(0)
   })
 })
