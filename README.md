@@ -91,6 +91,9 @@ Rejected, Withdrawn, Ghosted, Accepted).
   Nd ago”* before you apply), a priority dot (terracotta = high, tan =
   medium), and the next thing coming up — an overdue reminder in red,
   otherwise the earliest upcoming reminder or scheduled interview.
+- **Ordering:** the *Applied* column sorts by applied date (newest
+  first); every other column shows the most recently updated cards on
+  top, and *Closed* groups cards by outcome.
 - **Search** (top right) filters by company or role as you type.
 - **☾ / ☀** toggles dark mode; the choice sticks across sessions.
 - **Board / Dashboard** in the top-left switches views.
