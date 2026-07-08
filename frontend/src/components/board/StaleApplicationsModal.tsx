@@ -1,0 +1,197 @@
+import { useState, type MouseEvent } from 'react'
+import { api, errorMessage } from '../../api/client'
+import type { ApplicationCard } from '../../api/types'
+import { addDaysISO, shortDate } from '../../lib/dates'
+import ConfirmDialog from '../ui/ConfirmDialog'
+import { useToast } from '../ui/Toast'
+
+const SNOOZE_OPTIONS = [
+  { label: '1 week', days: 7 },
+  { label: '1 month', days: 30 },
+  { label: '3 months', days: 90 },
+]
+
+// Room the open menu needs (3 options + padding), for the flip-up check.
+const MENU_HEIGHT = 140
+
+interface MenuAnchor {
+  id: number
+  pos: { top?: number; bottom?: number; right: number }
+}
+
+interface Props {
+  applications: ApplicationCard[]
+  onClose: () => void
+  /** Called after a change that affects the host page (ghosted / deleted). */
+  onMutated: () => void
+}
+
+/** Triage prompt for applications stuck in Applied: move to Ghosted,
+    delete, or ignore for a chosen duration. Rows leave the list as they
+    are handled; the modal closes itself after the last one. */
+export default function StaleApplicationsModal({ applications, onClose, onMutated }: Props) {
+  const [stale, setStale] = useState<ApplicationCard[]>(applications)
+  const [deleting, setDeleting] = useState<ApplicationCard | null>(null)
+  const [menuFor, setMenuFor] = useState<MenuAnchor | null>(null)
+  const toast = useToast()
+
+  // The modal card scrolls (overflow-y), which would clip an absolutely
+  // positioned menu on the last row — so the menu is position: fixed,
+  // anchored to the trigger's rect, flipping upward near the viewport edge.
+  const toggleMenu = (card: ApplicationCard, e: MouseEvent<HTMLButtonElement>) => {
+    if (menuFor?.id === card.id) {
+      setMenuFor(null)
+      return
+    }
+    const rect = e.currentTarget.getBoundingClientRect()
+    const right = window.innerWidth - rect.right
+    const pos =
+      rect.bottom + 6 + MENU_HEIGHT > window.innerHeight
+        ? { bottom: window.innerHeight - rect.top + 6, right }
+        : { top: rect.bottom + 6, right }
+    setMenuFor({ id: card.id, pos })
+  }
+
+  const remove = (id: number) => {
+    const next = stale.filter((c) => c.id !== id)
+    setStale(next)
+    if (next.length === 0) onClose()
+  }
+
+  const ghost = async (card: ApplicationCard) => {
+    try {
+      await api.patch(`/api/applications/${card.id}/status`, { status: 'ghosted' })
+      remove(card.id)
+      onMutated()
+    } catch (err) {
+      toast(errorMessage(err))
+    }
+  }
+
+  const snooze = async (card: ApplicationCard, days: number) => {
+    try {
+      await api.patch(`/api/applications/${card.id}`, {
+        stale_snoozed_until: addDaysISO(days),
+      })
+      remove(card.id)
+    } catch (err) {
+      toast(errorMessage(err))
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deleting) return
+    const card = deleting
+    setDeleting(null)
+    try {
+      await api.del(`/api/applications/${card.id}`)
+      remove(card.id)
+      onMutated()
+    } catch (err) {
+      toast(errorMessage(err))
+    }
+  }
+
+  return (
+    <div className="overlay top-aligned">
+      <div
+        className="modal-card stale-card"
+        role="dialog"
+        aria-label="Stale applications"
+        onScroll={() => setMenuFor(null)}
+      >
+        <div className="modal-title">Still waiting to hear back?</div>
+        <div className="stale-intro">
+          {stale.length === 1
+            ? 'This application has'
+            : `These ${stale.length} applications have`}{' '}
+          been sitting in Applied for 3+ months. Close them out, or keep waiting.
+        </div>
+        {stale.map((card) => (
+          <div className="stale-row" key={card.id}>
+            <div className="stale-main">
+              <span className="stale-company">{card.company}</span>
+              <span className="stale-role">{card.role}</span>
+              {card.applied_date && (
+                <span className="stale-meta">
+                  Applied {shortDate(card.applied_date)} · {card.days_since_applied}d ago
+                </span>
+              )}
+            </div>
+            <div className="stale-actions">
+              <button type="button" className="stale-ghost" onClick={() => ghost(card)}>
+                Move to Ghosted
+              </button>
+              {/* Custom menu (same recipe as the detail modal's status pill) —
+                  the native select popup can't be styled to match the app. */}
+              <div
+                className="stale-snooze-wrap"
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                    setMenuFor((m) => (m?.id === card.id ? null : m))
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setMenuFor(null)
+                }}
+              >
+                <button
+                  type="button"
+                  className="stale-snooze"
+                  aria-haspopup="menu"
+                  aria-expanded={menuFor?.id === card.id}
+                  aria-label={`Ignore ${card.company} for`}
+                  onClick={(e) => toggleMenu(card, e)}
+                >
+                  Ignore for… ▾
+                </button>
+                {menuFor?.id === card.id && (
+                  <div className="stale-snooze-menu" role="menu" style={menuFor.pos}>
+                    {SNOOZE_OPTIONS.map((option) => (
+                      <button
+                        key={option.days}
+                        type="button"
+                        role="menuitem"
+                        className="stale-snooze-option"
+                        onClick={() => {
+                          setMenuFor(null)
+                          snooze(card, option.days)
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                className="stale-delete"
+                onClick={() => setDeleting(card)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="btn-ghost"
+            style={{ fontSize: 13, padding: '9px 6px' }}
+            onClick={onClose}
+          >
+            Decide later
+          </button>
+        </div>
+        <ConfirmDialog
+          open={deleting !== null}
+          label={deleting ? `${deleting.company} — ${deleting.role}` : ''}
+          detail="This permanently removes the application along with its contacts, interview rounds, notes, attachments and reminders."
+          onCancel={() => setDeleting(null)}
+          onConfirm={confirmDelete}
+        />
+      </div>
+    </div>
+  )
+}

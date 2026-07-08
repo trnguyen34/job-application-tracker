@@ -8,7 +8,7 @@ import CloseOutcomeModal from '../components/board/CloseOutcomeModal'
 import NewApplicationModal from '../components/board/NewApplicationModal'
 import StaleApplicationsCheck from '../components/board/StaleApplicationsCheck'
 import ApplicationDetailModal from '../components/detail/ApplicationDetailModal'
-import ThemeToggle from '../components/ui/ThemeToggle'
+import Settings from '../components/ui/Settings'
 import { useToast } from '../components/ui/Toast'
 import type { ColumnKey } from '../lib/design'
 import '../styles/board.css'
@@ -71,7 +71,7 @@ export default function BoardPage() {
           <button className="btn-new-app" onClick={() => setAdding(true)}>
             <span className="plus">+</span> New Application
           </button>
-          <ThemeToggle />
+          <Settings onMutated={refetch} />
         </div>
       </div>
 

@@ -26,9 +26,9 @@ function saveTheme(theme: Theme) {
   }
 }
 
-const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
+const ThemeContext = createContext<{ theme: Theme; set: (theme: Theme) => void }>({
   theme: 'light',
-  toggle: () => {},
+  set: () => {},
 })
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -38,15 +38,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = theme
   }, [theme])
 
-  const toggle = useCallback(() => {
-    setTheme((current) => {
-      const next: Theme = current === 'dark' ? 'light' : 'dark'
-      saveTheme(next)
-      return next
-    })
+  const set = useCallback((next: Theme) => {
+    saveTheme(next)
+    setTheme(next)
   }, [])
 
-  return <ThemeContext.Provider value={{ theme, toggle }}>{children}</ThemeContext.Provider>
+  return <ThemeContext.Provider value={{ theme, set }}>{children}</ThemeContext.Provider>
 }
 
 export const useTheme = () => useContext(ThemeContext)
