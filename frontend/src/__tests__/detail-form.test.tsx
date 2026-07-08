@@ -105,4 +105,28 @@ describe('ApplicationDetailPage', () => {
     await userEvent.selectOptions(screen.getByLabelText('Status'), 'interview')
     expect(api.patch).toHaveBeenCalledWith('/api/applications/1', { status: 'interview' })
   })
+
+  it('links an absolute job URL by hostname', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      ...detail,
+      job_url: 'https://stripe.com/jobs/listing/backend',
+    })
+    renderDetail()
+    const link = await screen.findByRole('link', { name: 'stripe.com ↗' })
+    expect(link).toHaveAttribute('href', 'https://stripe.com/jobs/listing/backend')
+  })
+
+  it('links a scheme-less job URL instead of crashing', async () => {
+    vi.mocked(api.get).mockResolvedValue({ ...detail, job_url: 'stripe.com/jobs' })
+    renderDetail()
+    const link = await screen.findByRole('link', { name: 'stripe.com ↗' })
+    expect(link).toHaveAttribute('href', 'https://stripe.com/jobs')
+  })
+
+  it('shows an unparseable job URL as plain text, not a link', async () => {
+    vi.mocked(api.get).mockResolvedValue({ ...detail, job_url: 'ask Maya for the link' })
+    renderDetail()
+    expect(await screen.findByText('ask Maya for the link')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /↗/ })).not.toBeInTheDocument()
+  })
 })

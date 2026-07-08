@@ -10,6 +10,7 @@ import NotesSection from '../components/detail/NotesSection'
 import AttachmentsSection from '../components/detail/AttachmentsSection'
 import RemindersSection from '../components/detail/RemindersSection'
 import InlineField from '../components/detail/InlineField'
+import { toHttpUrl } from '../lib/urls'
 import '../styles/detail.css'
 
 type Tab = 'interviews' | 'contacts' | 'notes' | 'reminders' | 'attachments'
@@ -40,6 +41,9 @@ export default function ApplicationDetailPage() {
           application.salary_max?.toLocaleString() ?? '?'
         } ${application.salary_currency}`
       : null
+
+  // null when job_url isn't a usable link; the field then shows raw text.
+  const jobUrl = application.job_url ? toHttpUrl(application.job_url) : null
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'interviews', label: 'Interviews', count: application.interview_rounds.length },
@@ -166,9 +170,9 @@ export default function ApplicationDetailPage() {
             <InlineField
               value={application.job_url}
               display={
-                application.job_url ? (
-                  <a href={application.job_url} target="_blank" rel="noreferrer">
-                    {new URL(application.job_url).hostname} ↗
+                jobUrl ? (
+                  <a href={jobUrl.href} target="_blank" rel="noreferrer">
+                    {jobUrl.hostname} ↗
                   </a>
                 ) : undefined
               }
