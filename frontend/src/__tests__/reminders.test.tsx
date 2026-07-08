@@ -150,7 +150,9 @@ describe('RemindersCard', () => {
     await userEvent.type(screen.getByPlaceholderText('What do you need to do?'), 'Ping recruiter')
     expect(save).toBeDisabled() // still no due date
 
-    await userEvent.type(screen.getByLabelText('Due date'), todayISO())
+    // The calendar dropdown: open the Due date field, pick today.
+    await userEvent.click(screen.getByRole('button', { name: 'Due date' }))
+    await userEvent.click(screen.getByRole('button', { name: todayISO() }))
     expect(save).toBeEnabled()
 
     await userEvent.click(save)

@@ -1,58 +1,46 @@
-import { useState } from 'react'
 import type { Status } from '../../api/types'
 import { STATUS_LABELS } from '../../api/types'
-import { ACTIVE_STATUSES, CLOSED_STATUSES, statusFg, statusTint } from '../../lib/design'
+import { STATUS_GROUPS, statusFg, statusTint } from '../../lib/design'
+import { DropdownMenu, useAnchoredMenu } from '../ui/Select'
 
 interface Props {
   status: Status
   onChoose: (status: Status) => void
 }
 
-/** Tinted status pill opening the grouped Active/Closed menu. */
+/** Tinted status pill opening the shared grouped Active/Closed dropdown. */
 export default function StatusPill({ status, onChoose }: Props) {
-  const [open, setOpen] = useState(false)
-
-  const choose = (next: Status) => {
-    setOpen(false)
-    onChoose(next)
-  }
+  const menu = useAnchoredMenu()
 
   return (
-    <div className="status-pill-wrap">
+    <div
+      className="status-pill-wrap"
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) menu.close()
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') menu.close()
+      }}
+    >
       <button
         className="status-pill"
+        aria-haspopup="menu"
+        aria-expanded={menu.open}
         style={{ background: statusTint(status), color: statusFg(status) }}
-        onClick={() => setOpen((o) => !o)}
+        onClick={menu.toggle}
       >
         {STATUS_LABELS[status]} ▾
       </button>
-      {open && (
-        <div className="status-menu" role="menu">
-          <div className="status-menu-group">Active</div>
-          {ACTIVE_STATUSES.map((s) => (
-            <button
-              key={s}
-              role="menuitem"
-              className="status-menu-item"
-              style={{ color: statusFg(s) }}
-              onClick={() => choose(s)}
-            >
-              ● {STATUS_LABELS[s]}
-            </button>
-          ))}
-          <div className="status-menu-group closed">Closed</div>
-          {CLOSED_STATUSES.map((s) => (
-            <button
-              key={s}
-              role="menuitem"
-              className="status-menu-item"
-              style={{ color: statusFg(s) }}
-              onClick={() => choose(s)}
-            >
-              ● {STATUS_LABELS[s]}
-            </button>
-          ))}
-        </div>
+      {menu.open && (
+        <DropdownMenu
+          groups={STATUS_GROUPS}
+          columns
+          style={menu.style ?? undefined}
+          onChoose={(next) => {
+            menu.close()
+            onChoose(next as Status)
+          }}
+        />
       )}
     </div>
   )

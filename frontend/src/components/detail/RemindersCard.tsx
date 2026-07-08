@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { api } from '../../api/client'
 import type { Reminder } from '../../api/types'
 import { isOverdue, relativeDayLabel, shortDate, toDate } from '../../lib/dates'
+import DateInput from '../ui/DateInput'
 
 interface Props {
   applicationId: number
@@ -58,11 +59,11 @@ export default function RemindersCard({
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
-          <input
-            type="date"
-            aria-label="Due date"
+          <DateInput
+            ariaLabel="Due date"
+            compact
             value={form.dueDate}
-            onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+            onChange={(dueDate) => setForm({ ...form, dueDate })}
           />
           <div className="tab-form-actions">
             <button className="btn-ghost" onClick={() => setForm(null)}>
