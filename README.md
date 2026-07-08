@@ -16,13 +16,34 @@ live in `frontend/src/styles/tokens.css`.
 
 ## Quick start
 
+You'll need **git**, **Python 3.11+** (developed on 3.14) and
+**Node 20.19+** (developed on 24) on macOS or Linux — `run.sh` is a bash
+script; on Windows use WSL.
+
+**1. Clone the project**
+
+```bash
+git clone https://github.com/trnguyen34/job-application-tracker.git
+cd job-application-tracker
+```
+
+**2. Run it**
+
 ```bash
 ./run.sh          # creates backend/.venv, installs deps, starts both servers
 ```
 
-Then open http://localhost:5173. The API (with OpenAPI docs at
-http://127.0.0.1:8000/docs) runs on port 8000; the Vite dev server proxies
-`/api` to it.
+The first run installs everything (Python packages into `backend/.venv`,
+npm packages into `frontend/node_modules`); later runs skip straight to
+starting the servers. Then open **http://localhost:5173**. The API (with
+OpenAPI docs at http://127.0.0.1:8000/docs) runs on port 8000; the Vite
+dev server proxies `/api` to it. Stop everything with `Ctrl+C`.
+
+**3. (Optional) load sample data**
+
+```bash
+make seed         # ~10 sample applications to click around in
+```
 
 Prefer make targets?
 
