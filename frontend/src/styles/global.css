@@ -107,10 +107,12 @@ textarea:focus {
   flex-shrink: 0;
 }
 
+/* The active view reads larger than the inactive link, so Board vs
+   Dashboard is obvious at a glance. */
 .crumb-current {
-  font-size: 13.5px;
+  font-size: 16px;
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
