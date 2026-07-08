@@ -158,48 +158,54 @@ textarea:focus {
   background: var(--tint-weak);
 }
 
-/* ---- Buttons ----------------------------------------------------------- */
+/* ---- Buttons ------------------------------------------------------------
+   One geometry, four intents, per button-design.jpg: primary (filled
+   accent), secondary (bordered surface), danger (outlined, not filled),
+   ghost (plain text). Dropdown triggers share the same look (.dd-trigger). */
 
-.btn-accent {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-size: 13px;
-  padding: 9px 18px;
+.btn-accent,
+.btn-new-app,
+.save-pill,
+.pill-link,
+.settings-action,
+.stale-ghost,
+.stale-snooze,
+.btn-danger-pill,
+.stale-delete,
+.btn-delete,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 18px;
   border-radius: 10px;
+  font-size: 13.5px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.btn-accent:disabled {
+/* primary */
+.btn-accent,
+.btn-new-app,
+.save-pill {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.btn-accent:hover:not(:disabled),
+.btn-new-app:hover,
+.save-pill:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-accent:disabled,
+.save-pill:disabled {
   background: var(--disabled-bg);
   color: var(--text-faint);
   cursor: not-allowed;
-}
-
-.btn-new-app {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-size: 13.5px;
-  padding: 11px 20px;
-  border-radius: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1px;
-  white-space: nowrap;
-  box-shadow: 0 2px 10px var(--accent-shadow);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  transition: transform 0.12s ease, filter 0.12s ease;
-}
-
-.btn-new-app:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-}
-
-.btn-new-app:active {
-  transform: translateY(0);
-  filter: brightness(0.97);
 }
 
 .btn-new-app .plus {
@@ -207,54 +213,63 @@ textarea:focus {
   line-height: 1;
 }
 
-.save-pill {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-size: 12.5px;
-  padding: 7px 16px;
-  border-radius: 12px;
-  font-weight: 600;
+/* secondary */
+.pill-link,
+.settings-action,
+.stale-ghost,
+.stale-snooze {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
 }
 
+.pill-link:hover,
+.settings-action:hover,
+.stale-ghost:hover,
+.stale-snooze:hover {
+  background: var(--tint-weak);
+}
+
+/* danger — outlined, not filled */
+.btn-danger-pill,
+.stale-delete,
+.btn-delete {
+  background: var(--surface);
+  border: 1px solid var(--danger-border);
+  color: var(--danger-fg);
+}
+
+.btn-danger-pill:hover,
+.stale-delete:hover,
+.btn-delete:hover {
+  border-color: var(--danger-fg);
+  background: var(--danger-bg);
+}
+
+/* ghost */
 .btn-ghost {
   color: var(--text-muted);
-  font-size: 12.5px;
+  padding: 0 12px;
 }
 
+.btn-ghost:hover {
+  color: var(--text);
+  background: var(--tint-weak);
+}
+
+/* Inline add-affordances and links keep their compact shapes. */
 .btn-dashed {
   border: 1px dashed var(--border-strong);
   color: var(--text-muted);
   font-size: 12.5px;
   padding: 7px 14px;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .link-accent {
   color: var(--accent);
   font-size: 12.5px;
   font-weight: 600;
-}
-
-.btn-danger-pill {
-  border: 1px solid var(--danger-border);
-  background: var(--danger-bg);
-  color: var(--danger-fg);
-  font-size: 12.5px;
-  padding: 7px 12px;
-  border-radius: 16px;
-}
-
-.pill-link {
-  font-size: 12.5px;
-  color: var(--text-muted);
-  border: 1px solid var(--border-strong);
-  padding: 7px 12px;
-  border-radius: 16px;
-  white-space: nowrap;
-}
-
-.pill-link:hover {
-  color: var(--text);
 }
 
 /* ---- Modals & overlays -------------------------------------------------- */
@@ -304,15 +319,6 @@ textarea:focus {
   font-size: 13px;
   color: var(--text-muted);
   margin-top: 8px;
-}
-
-.btn-delete {
-  background: var(--danger-fg);
-  color: #fcefec;
-  font-size: 13px;
-  padding: 9px 18px;
-  border-radius: 10px;
-  font-weight: 600;
 }
 
 /* Stale-applications launch prompt */
@@ -366,38 +372,8 @@ textarea:focus {
   flex-shrink: 0;
 }
 
-/* The three row actions share one pill metric so they read as a set:
-   keep (ghost) → snooze → destroy, destructive styling last. */
-.stale-ghost,
-.stale-snooze,
-.stale-delete {
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 16px;
-  font-size: 12.5px;
-  white-space: nowrap;
-}
-
-.stale-ghost {
-  border: 1px solid var(--border-strong);
-  color: var(--text-muted);
-}
-
-.stale-ghost:hover {
-  color: var(--text);
-  background: var(--tint-weak);
-}
-
-.stale-snooze {
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text-muted);
-}
-
-.stale-snooze:hover {
-  color: var(--text);
-  background: var(--tint-weak);
-}
+/* Row actions read keep (secondary) → snooze → destroy; their styling
+   comes from the shared button system above. */
 
 /* ---- Dropdowns (the app's one menu design, see ui/Select.tsx) ---------- */
 
@@ -413,11 +389,16 @@ textarea:focus {
   gap: 8px;
   border: 1px solid var(--border-strong);
   background: var(--surface);
-  border-radius: 8px;
-  padding: 9px 11px;
+  border-radius: 10px;
+  padding: 9px 12px;
   font-size: 13.5px;
   text-align: left;
   color: var(--text);
+}
+
+/* Status trigger sizes to its label instead of filling the row. */
+.dd-trigger.status-trigger {
+  width: auto;
 }
 
 .dd-trigger.compact {
@@ -439,7 +420,7 @@ textarea:focus {
 
 .dd-caret {
   color: var(--text-faint);
-  font-size: 11px;
+  font-size: 9px;
 }
 
 .dd-menu {
@@ -753,32 +734,8 @@ textarea:focus {
   font-weight: 600;
 }
 
-.settings-action {
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text-muted);
-  font-size: 12.5px;
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 16px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.settings-action:hover {
-  color: var(--text);
-  background: var(--tint-weak);
-}
-
-.stale-delete {
-  border: 1px solid var(--danger-border);
-  background: var(--danger-bg);
-  color: var(--danger-fg);
-}
-
-.stale-delete:hover {
-  border-color: var(--danger-fg);
-}
+/* (.settings-action and the stale row actions style via the shared
+   button system in the Buttons section.) */
 
 /* ---- Combobox (location autocomplete) ------------------------------------ */
 

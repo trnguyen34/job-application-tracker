@@ -409,7 +409,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
           <button
             type="button"
             className="btn-ghost"
-            style={{ fontSize: 13, padding: '9px 6px' }}
+           
             onClick={onClose}
           >
             Cancel

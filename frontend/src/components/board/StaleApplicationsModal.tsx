@@ -65,7 +65,7 @@ function StaleRow({ card, onGhost, onSnooze, onDelete }: RowProps) {
             aria-label={`Ignore ${card.company} for`}
             onClick={menu.toggle}
           >
-            Ignore for… ▾
+            Ignore for… <span className="dd-caret">▼</span>
           </button>
           {menu.open && (
             <DropdownMenu
@@ -157,7 +157,7 @@ export default function StaleApplicationsModal({ applications, onClose, onMutate
           <button
             type="button"
             className="btn-ghost"
-            style={{ fontSize: 13, padding: '9px 6px' }}
+           
             onClick={onClose}
           >
             Decide later

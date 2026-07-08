@@ -90,7 +90,7 @@ describe('ApplicationDetailModal', () => {
     renderDetail()
     await screen.findByRole('heading', { name: 'Acme Corp' })
 
-    await userEvent.click(screen.getByRole('button', { name: /Applied ▾/ }))
+    await userEvent.click(screen.getByRole('button', { name: /● Applied/ }))
     await userEvent.click(screen.getByRole('menuitem', { name: '● Interview' }))
 
     expect(api.patch).toHaveBeenCalledWith('/api/applications/1/status', {
