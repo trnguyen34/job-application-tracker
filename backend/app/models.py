@@ -77,6 +77,9 @@ class Application(Base):
     salary_currency: Mapped[str] = mapped_column(Text, nullable=False, default="USD")
     source: Mapped[str | None] = mapped_column(Text)
     priority: Mapped[str] = mapped_column(Text, nullable=False, default="medium")
+    # Launch-time stale check: hide this application from the "still in
+    # Applied after 3 months" prompt until this date ("Ignore for…").
+    stale_snoozed_until: Mapped[date | None] = mapped_column(Date)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=local_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=local_now, onupdate=local_now

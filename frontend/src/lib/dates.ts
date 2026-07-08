@@ -20,6 +20,13 @@ export function todayISO(): string {
   return ymd(new Date())
 }
 
+/** ISO date `days` from today (local) — e.g. snooze-until dates. */
+export function addDaysISO(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return ymd(d)
+}
+
 /** Whole days from `fromStr` to now; positive = in the past. */
 export function daysBetween(fromStr: string, now: Date = new Date()): number {
   return Math.round((startOfDay(now).getTime() - startOfDay(toDate(fromStr)).getTime()) / 86400000)

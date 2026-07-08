@@ -24,6 +24,7 @@ export const baseCard: ApplicationCard = {
   salary_currency: 'USD',
   source: 'LinkedIn',
   priority: 'high',
+  stale_snoozed_until: null,
   created_at: `${daysAgo(12)}T12:00:00`,
   updated_at: `${daysAgo(1)}T12:00:00`,
   days_since_applied: 12,

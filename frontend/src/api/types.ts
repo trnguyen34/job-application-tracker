@@ -60,6 +60,7 @@ export interface Application {
   salary_currency: string
   source: string | null
   priority: Priority
+  stale_snoozed_until: string | null
   created_at: string
   updated_at: string
 }

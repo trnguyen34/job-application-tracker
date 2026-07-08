@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from .. import models, schemas
 from ..database import get_db
+from ..services import stale
 
 router = APIRouter(prefix="/api", tags=["applications"])
 
@@ -94,6 +95,14 @@ def create_application(payload: schemas.ApplicationCreate, db: Session = Depends
     db.commit()
     db.refresh(application)
     return application
+
+
+# Declared before /applications/{application_id} so "stale" is matched as
+# this route rather than parsed (and rejected) as an application id.
+@router.get("/applications/stale", response_model=list[schemas.ApplicationCard])
+def list_stale_applications(db: Session = Depends(get_db)):
+    """Launch check: applications sitting in Applied for 3+ months."""
+    return [_to_card(a) for a in stale.stale_applications(db)]
 
 
 @router.get("/applications/{application_id}", response_model=schemas.ApplicationDetail)

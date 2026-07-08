@@ -310,6 +310,127 @@ textarea:focus {
   font-weight: 600;
 }
 
+/* Stale-applications launch prompt */
+
+.stale-card {
+  width: 640px;
+}
+
+.stale-intro {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 6px 0 14px;
+}
+
+.stale-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.stale-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stale-company {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stale-role {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.stale-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.stale-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* The three row actions share one pill metric so they read as a set:
+   keep (ghost) → snooze → destroy, destructive styling last. */
+.stale-ghost,
+.stale-snooze,
+.stale-delete {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.stale-ghost {
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.stale-ghost:hover {
+  color: var(--text);
+  background: var(--tint-weak);
+}
+
+.stale-snooze {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.stale-snooze:hover {
+  color: var(--text);
+  background: var(--tint-weak);
+}
+
+/* Same dropdown recipe as the detail modal's status-pill menu, but fixed
+   to the viewport (anchored via inline top/bottom/right from the trigger's
+   rect) so the modal card's overflow scroll never clips it. */
+.stale-snooze-menu {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px var(--border-strong);
+  padding: 8px;
+  width: 148px;
+  z-index: 60;
+}
+
+.stale-snooze-option {
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.stale-snooze-option:hover {
+  background: var(--tint-weak);
+}
+
+.stale-delete {
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+}
+
+.stale-delete:hover {
+  border-color: var(--danger-fg);
+}
+
 /* ---- Combobox (location autocomplete) ------------------------------------ */
 
 .combo {

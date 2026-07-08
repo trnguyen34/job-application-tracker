@@ -6,6 +6,7 @@ import type { ApplicationCard, Status } from '../api/types'
 import KanbanBoard from '../components/board/KanbanBoard'
 import CloseOutcomeModal from '../components/board/CloseOutcomeModal'
 import NewApplicationModal from '../components/board/NewApplicationModal'
+import StaleApplicationsCheck from '../components/board/StaleApplicationsCheck'
 import ApplicationDetailModal from '../components/detail/ApplicationDetailModal'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import { useToast } from '../components/ui/Toast'
@@ -108,6 +109,7 @@ export default function BoardPage() {
       {openId && (
         <ApplicationDetailModal id={openId} onClose={() => navigate('/')} onMutated={refetch} />
       )}
+      <StaleApplicationsCheck onMutated={refetch} />
     </div>
   )
 }
