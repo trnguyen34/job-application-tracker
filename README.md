@@ -1,5 +1,8 @@
 # Job Tracker
 
+[![CI](https://github.com/trnguyen34/job-application-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/trnguyen34/job-application-tracker/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/badge/release-v1.0.0-b5502e)](https://github.com/trnguyen34/job-application-tracker/releases)
+
 A single-user job application tracker that runs entirely on your machine.
 Kanban pipeline with drag-and-drop (five active columns plus a grouped
 Closed column), application details with contacts / interview rounds /
