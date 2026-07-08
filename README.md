@@ -34,6 +34,21 @@ make test         # backend (pytest) + frontend (vitest) suites
 make serve        # single-process mode: build frontend, serve it from FastAPI on :8000
 ```
 
+## Where your data lives
+
+| What | Where |
+|---|---|
+| Database | `tracker.db` at the repo root (SQLite, one file) |
+| Uploaded files | `uploads/<application id>/` |
+
+Both are gitignored — they're personal data and never belong in the repo.
+Back them up by copying the two paths.
+
+The schema is created automatically on startup (`create_all`). There are no
+migrations: this is a greenfield single-user app with a disposable local
+database, so Alembic would add ceremony without benefit. If the schema
+evolves later, introduce Alembic with a baseline autogenerate revision.
+
 ## Using the app
 
 *Screenshots use the bundled sample data (`make seed`).*
@@ -105,21 +120,6 @@ pipeline funnel, and applications by source.
 ### Dark mode
 
 ![Kanban board in dark mode](docs/screenshots/board-dark.png)
-
-## Where your data lives
-
-| What | Where |
-|---|---|
-| Database | `tracker.db` at the repo root (SQLite, one file) |
-| Uploaded files | `uploads/<application id>/` |
-
-Both are gitignored — they're personal data and never belong in the repo.
-Back them up by copying the two paths.
-
-The schema is created automatically on startup (`create_all`). There are no
-migrations: this is a greenfield single-user app with a disposable local
-database, so Alembic would add ceremony without benefit. If the schema
-evolves later, introduce Alembic with a baseline autogenerate revision.
 
 ## Development notes
 
