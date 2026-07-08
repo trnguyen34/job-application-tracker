@@ -133,13 +133,16 @@
 
 /* Fluid grid: label column + 53 equal week columns filling the panel;
    cells stay square via aspect-ratio, so everything scales with width.
+   The 4px gap matches GitHub's gap-to-square ratio (~27%) at full width.
    min-width keeps small screens scrolling instead of crushing the cells. */
 .contrib-grid {
   display: grid;
   grid-template-columns: max-content repeat(53, minmax(0, 1fr));
   grid-template-rows: auto repeat(7, auto);
-  gap: 3px;
+  gap: 4px;
   min-width: 720px;
+  /* room for the last month label, which overflows its track */
+  padding-right: 8px;
 }
 
 .contrib-cell {
