@@ -17,7 +17,7 @@ export default function ConfirmDialog({ open, label, detail, onCancel, onConfirm
         <div className="modal-title">Delete {label}?</div>
         <div className="confirm-detail">{detail}</div>
         <div className="modal-actions">
-          <button className="btn-ghost" style={{ fontSize: 13, padding: '9px 6px' }} onClick={onCancel}>
+          <button className="btn-ghost" onClick={onCancel}>
             Cancel
           </button>
           <button className="btn-delete" onClick={onConfirm}>

@@ -96,7 +96,7 @@ export default function DateInput({
         <span className={`dd-value${value ? '' : ' placeholder'}`}>
           {value ? label(value, withTime) : placeholder}
         </span>
-        <span className="dd-caret">▾</span>
+        <span className="dd-caret">▼</span>
       </button>
       {menu.open && (
         <div

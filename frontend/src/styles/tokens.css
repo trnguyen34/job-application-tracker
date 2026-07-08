@@ -118,6 +118,10 @@
   --tint-weak: rgba(241, 235, 224, 0.08);
   --disabled-bg: #35322b;
 
+  /* button-design.jpg: dark primary buttons use a lighter terracotta */
+  --accent: #c2653e;
+  --accent-hover: #b5502e;
+
   /* Deeper status mix to match the light theme's darker columns:
      mixHex(status fg, #201D18, 0.78) */
   --column-wishlist: rgb(45, 45, 44);

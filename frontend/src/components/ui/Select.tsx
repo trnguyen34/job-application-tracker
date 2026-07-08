@@ -143,7 +143,7 @@ export default function Select({
           {current?.color ? '● ' : ''}
           {current?.label ?? ''}
         </span>
-        <span className="dd-caret">▾</span>
+        <span className="dd-caret">▼</span>
       </button>
       {menu.open && (
         <DropdownMenu

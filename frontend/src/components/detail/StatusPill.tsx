@@ -1,6 +1,6 @@
 import type { Status } from '../../api/types'
 import { STATUS_LABELS } from '../../api/types'
-import { STATUS_GROUPS, statusFg, statusTint } from '../../lib/design'
+import { STATUS_GROUPS, statusFg } from '../../lib/design'
 import { DropdownMenu, useAnchoredMenu } from '../ui/Select'
 
 interface Props {
@@ -8,7 +8,8 @@ interface Props {
   onChoose: (status: Status) => void
 }
 
-/** Tinted status pill opening the shared grouped Active/Closed dropdown. */
+/** Status dropdown trigger (dot + tinted label per button-design.jpg)
+    opening the shared grouped Active/Closed menu. */
 export default function StatusPill({ status, onChoose }: Props) {
   const menu = useAnchoredMenu()
 
@@ -23,13 +24,15 @@ export default function StatusPill({ status, onChoose }: Props) {
       }}
     >
       <button
-        className="status-pill"
+        className="dd-trigger status-trigger"
         aria-haspopup="menu"
         aria-expanded={menu.open}
-        style={{ background: statusTint(status), color: statusFg(status) }}
         onClick={menu.toggle}
       >
-        {STATUS_LABELS[status]} ▾
+        <span className="dd-value" style={{ color: statusFg(status) }}>
+          ● {STATUS_LABELS[status]}
+        </span>
+        <span className="dd-caret">▼</span>
       </button>
       {menu.open && (
         <DropdownMenu
