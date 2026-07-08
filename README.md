@@ -95,7 +95,7 @@ Rejected, Withdrawn, Ghosted, Accepted).
   first); every other column shows the most recently updated cards on
   top, and *Closed* groups cards by outcome.
 - **Search** (top right) filters by company or role as you type.
-- **☾ / ☀** toggles dark mode; the choice sticks across sessions.
+- **⚙** (top right) opens **Settings** — see below.
 - **Board / Dashboard** in the top-left switches views.
 
 ### The application modal
@@ -147,7 +147,20 @@ a prompt, oldest first. For each one you can:
   check until then; when the snooze lapses it shows up again.
 
 **Decide later** dismisses the prompt until the next launch without
-touching anything.
+touching anything. You can also run the check on demand from
+**⚙ Settings → Applications → Check now**.
+
+### Settings
+
+![Settings modal](docs/screenshots/settings.png)
+
+The **⚙** button (top right on both views) opens Settings — a
+macOS-style modal with sections on the left:
+
+- **Appearance** — switch between the light and dark theme; the choice
+  sticks across sessions.
+- **Applications** — run the stale-applications check right now instead
+  of waiting for the next launch.
 
 ### The dashboard
 

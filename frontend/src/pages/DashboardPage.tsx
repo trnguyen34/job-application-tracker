@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { useStats } from '../api/hooks'
 import StaleApplicationsCheck from '../components/board/StaleApplicationsCheck'
+import Settings from '../components/ui/Settings'
 import ActivityHeatmap from '../components/dashboard/ActivityHeatmap'
 import FollowUps from '../components/dashboard/FollowUps'
 import FunnelBars from '../components/dashboard/FunnelBars'
 import SourceBars from '../components/dashboard/SourceBars'
 import StatTiles from '../components/dashboard/StatTiles'
 import WeeklyBars from '../components/dashboard/WeeklyBars'
-import ThemeToggle from '../components/ui/ThemeToggle'
 import '../styles/dashboard.css'
 
 export default function DashboardPage() {
@@ -24,7 +24,7 @@ export default function DashboardPage() {
         <span className="crumb-sep">/</span>
         <span className="crumb-current">Dashboard</span>
         <div className="spacer" />
-        <ThemeToggle />
+        <Settings onMutated={refetch} />
       </div>
 
       {error ? (
