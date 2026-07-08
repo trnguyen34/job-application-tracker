@@ -14,7 +14,7 @@ interface Props {
 export default function NewApplicationModal({ onClose, onCreated }: Props) {
   const [company, setCompany] = useState('')
   const [role, setRole] = useState('')
-  const [status, setStatus] = useState<Status>('wishlist')
+  const [status, setStatus] = useState<Status>('applied')
   const [location, setLocation] = useState('')
   const [workMode, setWorkMode] = useState<WorkMode>('remote')
   const [source, setSource] = useState('LinkedIn')
@@ -54,7 +54,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
   }
 
   return (
-    <div className="overlay">
+    <div className="overlay top-aligned">
       <form
         className="modal-card new-app-card"
         role="dialog"

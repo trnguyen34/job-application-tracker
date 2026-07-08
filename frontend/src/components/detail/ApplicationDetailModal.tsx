@@ -66,7 +66,7 @@ export default function ApplicationDetailModal({ id, onClose, onMutated }: Props
   }, [onClose])
 
   const shell = (content: React.ReactNode) => (
-    <div className="overlay detail-overlay" onClick={onClose}>
+    <div className="overlay top-aligned" onClick={onClose}>
       <div
         className="modal-card detail-modal"
         role="dialog"

@@ -262,6 +262,13 @@ textarea:focus {
   padding: 20px;
 }
 
+/* Large content modals (application detail, new application) share the
+   same top-anchored position instead of floating vertically centered. */
+.overlay.top-aligned {
+  align-items: flex-start;
+  padding: 5vh 20px 20px;
+}
+
 .modal-card {
   background: var(--surface);
   border-radius: 16px;
