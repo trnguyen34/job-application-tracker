@@ -51,3 +51,147 @@ evolves later, introduce Alembic with a baseline autogenerate revision.
 - Everything works offline. CORS is open only to the Vite dev origin.
 - Python deps are pinned in `backend/requirements.txt` and installed into
   `backend/.venv` — never globally.
+
+## Frontend redesign plan — match `Job Tracker.dc.html`
+
+**Design source:** the claude.ai/design project “Job Application Tracker”
+(`ba324b28-3e34-4556-92d3-e7aeb3a52ed6`), file `Job Tracker.dc.html`
+(imported 2026-07-07). The prototype is the visual spec — match its output,
+not its internals. It defines three views (Board, Dashboard, Detail with
+deep links), a light/dark theme, a terracotta accent (`#B5502E`), and
+Space Grotesk / Newsreader / IBM Plex Mono typography. Design-tool knobs
+are implemented at their defaults: comfortable card density, grouped
+“Closed” board column. Decisions already made: adopt the design’s
+dashboard (pure-CSS charts + activity heatmap, drop recharts); drop the
+CSV panel from the UI but keep `/api/export/csv` and `/api/import/csv`.
+
+### Phase 0 — design foundations
+
+1. Swap fonts: remove `@fontsource-variable/bricolage-grotesque` and
+   `inter`; add Space Grotesk (variable), Newsreader (variable + italic),
+   and IBM Plex Mono (400/500/600) from Fontsource — self-hosted, offline.
+2. Rewrite `styles/tokens.css` as CSS variables copied from the design’s
+   `THEME_TOKENS`: light (`--bg #F6F2EA`, `--surface #FFFFFF`,
+   `--surface-alt`, `--column-bg`, `--text #211D17`, `--text-muted`,
+   `--text-faint`, borders, `--overlay`, `--tint-weak`, `--disabled-bg`)
+   and dark (`--bg #1A1815`, `--surface #242019`, …) under
+   `[data-theme="dark"]`; plus `--accent #B5502E` (hover `#9C4325`) and
+   the nine status fg/bg pairs (wishlist `#5B6472/#EEF0F2` … ghosted
+   `#71698A/#EAE7F0`), outcome badge colors, and priority colors
+   (medium dot `#B8AA8C`).
+3. Add a `useTheme` hook: sets `data-theme` + `color-scheme` on `<html>`,
+   persists to localStorage (`job-tracker-ui-prefs-v1`), defaults to
+   light; round ☾/☀ toggle button rendered in every top bar.
+4. Rewrite `styles/global.css` base: Space Grotesk body, 8px scrollbars,
+   accent links, focus outline `2px solid rgba(181,80,46,0.25)`,
+   placeholder color, `toastRise` keyframes.
+
+### Phase 1 — backend additions (small)
+
+5. Extend `GET /api/stats` with `applications_per_day`: `{date, count}`
+   for the last 371 days (53 weeks ending today) from `applied_date`,
+   zero-filled client-side. The heatmap and the 12-week bar chart both
+   derive from it. Add tests.
+6. Match the design’s response-time stat: exclude negative deltas
+   (first interview scheduled before the applied date) from
+   `avg_response_time_days`. Adjust the stats test.
+7. Broaden the applied-date rule in `apply_status_change`
+   (backend/app/routers/applications.py): stamp `applied_date` when
+   moving out of wishlist to **any** status (not just `applied`) if it is
+   unset — the design does this on every board drop and status change.
+   Update transition tests.
+8. No other API changes: contact/note/interview PATCH endpoints already
+   exist for the new edit UIs; attachment upload already defaults
+   `file_type` to `other` (the design has no category picker — the badge
+   shows the filename extension, computed client-side); multi-file upload
+   is sequential POSTs; `GET /api/reminders?upcoming=true&days=14`
+   already returns overdue + next-two-weeks for the dashboard.
+
+### Phase 2 — app shell, routing, shared UI
+
+9. Replace the current topbar with the design’s 56px per-view bars:
+   `Board / Dashboard` breadcrumb toggle, pill search input (board only),
+   accent “+ New Application” button (hover lift + tinted shadow), theme
+   toggle. Keep react-router paths — `/` (board), `/dashboard`,
+   `/applications/:id` (equivalent of the prototype’s `#/a/{id}` deep
+   links; the SPA fallback already survives refresh).
+10. Shared UI: `ConfirmDialog` (replaces `window.confirm` for **all**
+    deletes; the application variant warns that contacts, rounds, notes,
+    reminders and attachments go with it) and `Toast` (bottom-center dark
+    pill, ~2.6s auto-dismiss). Form validation keeps the existing inline
+    `role="alert"` pattern; toasts surface transient/global feedback.
+
+### Phase 3 — board
+
+11. Rebuild the board with six columns: Wishlist, Applied, Phone Screen,
+    Interview, Offer, and a grouped **Closed** column holding accepted /
+    rejected / withdrawn / ghosted. Columns are 300px, tinted with the
+    status bg (mixed toward the dark surface in dark mode), header =
+    uppercase label + mono count badge; drag-over = accent border +
+    accent-tint background.
+12. Redesign cards: company 15px/600, role 13px muted, mono meta row
+    “Remote · Location · Applied 3d ago” (or “Saved Nd ago” from
+    `created_at` when no applied date), priority dot top-right (high =
+    accent, medium = `#B8AA8C`, low = none), next-event chip (overdue
+    reminder → red `Overdue — description`; else earliest of upcoming
+    reminders / pending interviews → accent-tint chip), and a status tag
+    on cards inside the Closed column. Sort within a column by
+    `updated_at` desc (status order first inside Closed). Search filters
+    client-side over company + role.
+13. Keep @dnd-kit for drag & drop: dropping on a status column PATCHes
+    `/status` optimistically (existing `moveCard`); dropping on Closed
+    opens the outcome-picker modal (Accepted / Rejected / Withdrawn /
+    Ghosted) and PATCHes on choice; dragged card at reduced opacity.
+14. Rebuild the New Application modal per the design: company* / role*
+    with a disabled “Add to {Status}” button until valid, status select
+    with Active/Closed optgroups, location, work-mode / source / priority
+    selects, job URL, salary min/max; sends `applied_date = today` when
+    status ≠ wishlist; on create, navigate to the new detail page.
+
+### Phase 4 — detail page
+
+15. Rebuild `ApplicationDetailPage` as the design’s two-column layout
+    (1fr / 320px sidebar, max-width 1120px): breadcrumb bar with
+    “Job posting ↗” pill (safe URL via `lib/urls.toHttpUrl`) and a red
+    Delete pill → ConfirmDialog; serif company (32px) + role; status pill
+    opening the grouped dropdown menu (Active / Closed with colored
+    dots); Low/Med/High segmented priority control.
+16. Sidebar: Details card with a view list (Applied, Location, Work mode,
+    Salary as `$95k–$115k`, Source) and an Edit mode that swaps to one
+    form (job URL, applied date, location, work-mode select, salary
+    min/max, currency select USD/EUR/GBP/CAD/AUD, source select) saved in
+    a single PATCH — this replaces the per-field `InlineField` pattern.
+    Below it: Reminders card (add form, checkbox toggle, overdue red /
+    done struck) and a mono `Created … / Updated …` footer.
+17. Tabs — Contacts / Interview Rounds / Notes / Attachments with accent
+    underline: contacts gain an **Edit** flow (PATCH exists); rounds gain
+    Edit with a type select mapped label⇄enum key (Phone Screen ⇄
+    `phone_screen`, Technical, Onsite, Final, Other; legacy
+    `behavioral`/`system_design` rows still render) and an outcome select
+    + tinted badge; notes get inline editing (PATCH exists); attachments
+    get multi-file upload, an extension badge (PDF/DOCX) derived from the
+    filename, click-to-download, and confirmed deletes.
+
+### Phase 5 — dashboard
+
+18. Rebuild per the design, all pure CSS: five serif stat tiles;
+    Upcoming follow-ups (overdue first, top 8, row click → detail);
+    **activity heatmap** (53×7 grid from `applications_per_day`, five
+    accent-tinted levels with dark-mode variants, month labels, per-day
+    tooltips, “N applications submitted in the last year”); Applications
+    per week (last 12 Sunday-start weeks, zero-filled, accent bars);
+    Pipeline funnel (nine rows, status-colored bars); Applications by
+    source (accent bars, sorted desc). Remove the CSV panel from the page.
+
+### Phase 6 — cleanup & verification
+
+19. Delete what the redesign obsoletes: recharts dependency,
+    `chartTheme.ts`, the old chart components, `CsvPanel`, `Modal` /
+    `InlineField` if fully replaced, the old font packages, and dead CSS.
+20. Update tests and verify: board tests (six columns, closed tags,
+    outcome-modal flow), detail tests (single-save edit form,
+    contact/note/round editing, ConfirmDialog flows), dashboard smoke
+    test (heatmap renders from stats), theme-toggle persistence; backend
+    tests for `applications_per_day` and the broadened transition rule.
+    Finish with `make test`, `npm run build`, and a `make serve` smoke
+    check of all three views in both themes.

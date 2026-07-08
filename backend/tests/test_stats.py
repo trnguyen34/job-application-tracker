@@ -64,6 +64,7 @@ def test_stats_empty_database(client):
     stats = client.get("/api/stats").json()
     assert stats["totals"] == {"total": 0, "active": 0, "offers": 0, "rejected": 0}
     assert stats["applications_over_time"] == []
+    assert stats["applications_per_day"] == []
     assert all(bucket["count"] == 0 for bucket in stats["status_funnel"])
     assert stats["by_source"] == []
     assert stats["avg_response_time_days"] is None
@@ -92,4 +93,42 @@ def test_stats_aggregates_known_dataset(client):
     sources = {row["source"]: row["count"] for row in stats["by_source"]}
     assert sources == {"LinkedIn": 3, "Referral": 2, "Unknown": 1}
 
+    per_day = {row["date"]: row["count"] for row in stats["applications_per_day"]}
+    assert per_day == {
+        iso(THIS_MONDAY - timedelta(days=7)): 2,
+        iso(THIS_MONDAY): 1,
+        iso(THIS_MONDAY + timedelta(days=1)): 1,
+        iso(THIS_MONDAY + timedelta(days=2)): 1,
+    }
+    # sorted ascending by date
+    assert [row["date"] for row in stats["applications_per_day"]] == sorted(per_day)
+
     assert stats["avg_response_time_days"] == 5.0
+
+
+def test_negative_response_times_are_excluded(client):
+    """An interview scheduled before the applied date is bad data and must
+    not drag the average below zero."""
+    seed_known_dataset(client)
+    weird = create_application(
+        client, status="interview", applied_date=iso(THIS_MONDAY), source="LinkedIn"
+    )
+    client.post(
+        f"/api/applications/{weird['id']}/interviews",
+        json={
+            "round_type": "phone_screen",
+            "scheduled_at": f"{iso(THIS_MONDAY - timedelta(days=10))}T10:00:00",
+        },
+    )
+    stats = client.get("/api/stats").json()
+    assert stats["avg_response_time_days"] == 5.0
+
+
+def test_applications_per_day_window_excludes_old_rows(client):
+    create_application(client, applied_date=iso(TODAY - timedelta(days=400)))
+    create_application(client, applied_date=iso(TODAY))
+    per_day = {
+        row["date"]: row["count"]
+        for row in client.get("/api/stats").json()["applications_per_day"]
+    }
+    assert per_day == {iso(TODAY): 1}

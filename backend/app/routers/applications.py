@@ -25,11 +25,12 @@ def get_application_or_404(db: Session, application_id: int) -> models.Applicati
 
 def apply_status_change(application: models.Application, new_status: str) -> None:
     """Single home for the transition rule, shared by the generic PATCH and
-    the /status endpoint: leaving wishlist for applied stamps applied_date,
-    unless a date is already set."""
+    the /status endpoint: leaving wishlist for any other status stamps
+    applied_date, unless a date is already set. (Skipping straight from
+    wishlist to e.g. interview still means an application happened.)"""
     if (
         application.status == "wishlist"
-        and new_status == "applied"
+        and new_status != "wishlist"
         and application.applied_date is None
     ):
         application.applied_date = date.today()

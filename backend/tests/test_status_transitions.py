@@ -63,6 +63,17 @@ def test_generic_patch_preserves_existing_applied_date(client):
     assert response.json()["applied_date"] == "2026-01-15"
 
 
+def test_leaving_wishlist_for_any_status_sets_applied_date(client):
+    """Dragging wishlist -> phone_screen (skipping 'applied') still means an
+    application happened, so the date is stamped."""
+    created = create_application(client, status="wishlist", applied_date=None)
+    response = client.patch(
+        f"/api/applications/{created['id']}/status", json={"status": "phone_screen"}
+    )
+    assert response.status_code == 200
+    assert response.json()["applied_date"] == date.today().isoformat()
+
+
 def test_generic_patch_explicit_applied_date_wins_over_stamp(client):
     created = create_application(client, status="wishlist", applied_date=None)
     response = client.patch(
