@@ -310,6 +310,45 @@ textarea:focus {
   font-weight: 600;
 }
 
+/* ---- Combobox (location autocomplete) ------------------------------------ */
+
+.combo {
+  position: relative;
+}
+
+.combo input {
+  width: 100%;
+}
+
+.combo-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px var(--border-strong);
+  padding: 6px;
+  z-index: 60;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.combo-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 9px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.combo-option.active {
+  background: var(--tint-weak);
+}
+
 /* ---- Toast --------------------------------------------------------------- */
 
 .toast {

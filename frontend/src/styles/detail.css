@@ -529,7 +529,8 @@
   gap: 10px;
 }
 
-.details-edit label {
+.details-edit label,
+.details-edit-field {
   font-size: 11px;
   color: var(--text-faint);
   display: block;

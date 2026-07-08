@@ -111,8 +111,8 @@ refresh) and the application opens as a modal over the board. Esc, the
   editing), and **Attachments** (PDF/Word up to 10 MB, multi-file
   upload, click a row to download).
 - The **Details** sidebar card edits everything else in one save:
-  applied date, location, work mode, salary range + currency, source,
-  job posting URL. **Reminders** live below it — add with a due date,
+  applied date, location (with US city autocomplete), work mode, salary
+  range + currency, source, job posting URL. **Reminders** live below it — add with a due date,
   check off, or delete.
 - **Delete** (top right) removes the application and everything in it,
   after a confirmation.
@@ -123,7 +123,9 @@ refresh) and the application opens as a modal over the board. Esc, the
 
 **+ New Application** opens the quick-add form. Company and role are
 required; status defaults to **Applied** (stamping today as the applied
-date — pick Wishlist to save without one). You can attach **contacts**
+date — pick Wishlist to save without one). The location field suggests
+every US city in `City, ST` form, filtering by city or state as you
+type — free text still works for anything else. You can attach **contacts**
 right away, and choosing *Phone Screen* or *Interview* status unlocks
 adding **interview rounds** before the application even exists. Creating
 drops you straight into the application modal.

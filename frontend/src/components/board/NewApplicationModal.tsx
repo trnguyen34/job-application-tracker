@@ -4,6 +4,7 @@ import type { Application, Priority, RoundType, Status, WorkMode } from '../../a
 import { ROUND_TYPE_LABELS, STATUS_LABELS } from '../../api/types'
 import { ACTIVE_STATUSES, CLOSED_STATUSES, SOURCE_OPTIONS } from '../../lib/design'
 import { formatDateTime, todayISO } from '../../lib/dates'
+import LocationInput from '../ui/LocationInput'
 import { useToast } from '../ui/Toast'
 
 interface ContactDraft {
@@ -167,11 +168,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
               </optgroup>
             </select>
           </label>
-          <input
-            placeholder="Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
+          <LocationInput value={location} onChange={setLocation} placeholder="Location" />
           <select
             aria-label="Work mode"
             value={workMode}

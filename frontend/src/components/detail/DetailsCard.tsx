@@ -1,6 +1,7 @@
 import type { ApplicationDetail, WorkMode } from '../../api/types'
 import { CURRENCY_OPTIONS, fmtSalary, SOURCE_OPTIONS, WORK_MODE_LABELS } from '../../lib/design'
 import { shortDate } from '../../lib/dates'
+import LocationInput from '../ui/LocationInput'
 
 export interface DetailsDraft {
   company: string
@@ -122,10 +123,10 @@ export default function DetailsCard({
               onChange={(e) => set('appliedDate')(e.target.value)}
             />
           </label>
-          <label>
+          <div className="details-edit-field">
             Location
-            <input value={draft.location} onChange={(e) => set('location')(e.target.value)} />
-          </label>
+            <LocationInput value={draft.location} onChange={set('location')} placeholder="" />
+          </div>
           <label>
             Work mode
             <select value={draft.workMode} onChange={(e) => set('workMode')(e.target.value)}>
