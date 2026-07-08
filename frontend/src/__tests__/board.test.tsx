@@ -53,6 +53,34 @@ describe('KanbanBoard', () => {
     expect(within(screen.getByTestId('column-applied')).getByText('1')).toBeInTheDocument()
     expect(within(screen.getByTestId('column-offer')).getByText('0')).toBeInTheDocument()
   })
+
+  it('sorts the Applied column by applied date, newest first', () => {
+    const applied = (id: number, appliedDate: string | null, updatedAt: string) => ({
+      ...baseCard,
+      id,
+      status: 'applied' as const,
+      applied_date: appliedDate,
+      updated_at: updatedAt,
+    })
+    render(
+      <MemoryRouter>
+        <KanbanBoard
+          cards={[
+            applied(1, daysAgo(20), `${daysAgo(0)}T09:00:00`), // oldest date, touched today
+            applied(2, daysAgo(2), `${daysAgo(10)}T09:00:00`),
+            applied(3, null, `${daysAgo(0)}T12:00:00`), // no date -> last
+            applied(4, daysAgo(7), `${daysAgo(9)}T09:00:00`),
+          ]}
+          onMove={vi.fn()}
+          onOpen={vi.fn()}
+        />
+      </MemoryRouter>,
+    )
+    const ids = within(screen.getByTestId('column-applied'))
+      .getAllByTestId(/^card-/)
+      .map((el) => el.getAttribute('data-testid'))
+    expect(ids).toEqual(['card-2', 'card-4', 'card-1', 'card-3'])
+  })
 })
 
 describe('nextEventFor', () => {

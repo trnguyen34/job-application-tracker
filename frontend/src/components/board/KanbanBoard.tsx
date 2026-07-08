@@ -35,13 +35,21 @@ export function dragEndToMove(event: DragEndEvent): { id: number; column: Column
 }
 
 function columnCards(cards: CardData[], key: ColumnKey): CardData[] {
-  return cards
-    .filter((c) => columnKeyForStatus(c.status) === key)
-    .sort(
+  const list = cards.filter((c) => columnKeyForStatus(c.status) === key)
+  if (key === 'applied') {
+    // Applied reads as a timeline: most recently applied first, cards
+    // without a date last.
+    return list.sort(
       (a, b) =>
-        STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
+        (b.applied_date ?? '').localeCompare(a.applied_date ?? '') ||
         b.updated_at.localeCompare(a.updated_at),
     )
+  }
+  return list.sort(
+    (a, b) =>
+      STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
+      b.updated_at.localeCompare(a.updated_at),
+  )
 }
 
 interface Props {
