@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
@@ -32,9 +32,11 @@ vi.mock('../components/board/KanbanBoard', async (importOriginal) => {
     default: ({
       cards,
       onMove,
+      onOpen,
     }: {
       cards: { id: number; company: string; status: string }[]
       onMove: (id: number, column: ColumnKey) => void
+      onOpen: (id: number) => void
     }) => (
       <div>
         {cards.map((c) => (
@@ -44,6 +46,7 @@ vi.mock('../components/board/KanbanBoard', async (importOriginal) => {
         ))}
         <button onClick={() => onMove(1, 'interview')}>drop card 1 on interview</button>
         <button onClick={() => onMove(1, 'closed')}>drop card 1 on closed</button>
+        <button onClick={() => onOpen(1)}>open card 1</button>
       </div>
     ),
   }
@@ -152,5 +155,37 @@ describe('BoardPage drag-and-drop wiring', () => {
 
     expect(api.patch).not.toHaveBeenCalled()
     expect(screen.getByTestId('stub-card-1')).toHaveAttribute('data-status', 'applied')
+  })
+
+  it('opens the detail modal over the board and closes back to it', async () => {
+    vi.mocked(api.get).mockImplementation((path: string) =>
+      path === '/api/applications'
+        ? Promise.resolve(cards)
+        : Promise.resolve({
+            ...cards[0],
+            contacts: [],
+            interview_rounds: [],
+            notes: [],
+            attachments: [],
+            reminders: [],
+          }),
+    )
+    render(
+      <MemoryRouter>
+        <BoardPage />
+      </MemoryRouter>,
+    )
+    await screen.findByTestId('stub-card-1')
+
+    await userEvent.click(screen.getByRole('button', { name: 'open card 1' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Acme Corp' })
+    expect(within(dialog).getByRole('heading', { name: 'Acme Corp' })).toBeInTheDocument()
+    // board is still mounted behind the modal
+    expect(screen.getByTestId('stub-card-1')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog', { name: 'Acme Corp' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('stub-card-1')).toBeInTheDocument()
   })
 })

@@ -1,8 +1,7 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import ApplicationDetailPage from '../pages/ApplicationDetailPage'
+import ApplicationDetailModal from '../components/detail/ApplicationDetailModal'
 import { ToastProvider } from '../components/ui/Toast'
 import { api } from '../api/client'
 import { baseCard } from './fixtures'
@@ -29,19 +28,17 @@ const detail: ApplicationDetail = {
   reminders: [],
 }
 
+const onClose = vi.fn()
+const onMutated = vi.fn()
+
 const renderDetail = () =>
   render(
     <ToastProvider>
-      <MemoryRouter initialEntries={['/applications/1']}>
-        <Routes>
-          <Route path="/applications/:id" element={<ApplicationDetailPage />} />
-          <Route path="/" element={<div>BOARD HOME</div>} />
-        </Routes>
-      </MemoryRouter>
+      <ApplicationDetailModal id="1" onClose={onClose} onMutated={onMutated} />
     </ToastProvider>,
   )
 
-describe('ApplicationDetailPage', () => {
+describe('ApplicationDetailModal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(api.get).mockResolvedValue(detail)
@@ -49,14 +46,23 @@ describe('ApplicationDetailPage', () => {
     vi.mocked(api.del).mockResolvedValue(undefined)
   })
 
-  it('renders the application header and facts', async () => {
+  it('renders the application header and facts in a dialog', async () => {
     renderDetail()
     expect(await screen.findByRole('heading', { name: 'Acme Corp' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Acme Corp' })).toBeInTheDocument()
     expect(screen.getByText('Backend Engineer')).toBeInTheDocument()
     expect(screen.getByText('$150k–$190k')).toBeInTheDocument()
   })
 
-  it('saves the Details edit form in a single PATCH', async () => {
+  it('closes via the ✕ button without mutating anything', async () => {
+    renderDetail()
+    await screen.findByRole('heading', { name: 'Acme Corp' })
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(onClose).toHaveBeenCalled()
+    expect(api.patch).not.toHaveBeenCalled()
+  })
+
+  it('saves the Details edit form in a single PATCH and refreshes the board', async () => {
     renderDetail()
     await screen.findByRole('heading', { name: 'Acme Corp' })
 
@@ -77,6 +83,7 @@ describe('ApplicationDetailPage', () => {
         salary_currency: 'USD',
       }),
     )
+    await waitFor(() => expect(onMutated).toHaveBeenCalled())
   })
 
   it('changes status through the pill menu via the /status endpoint', async () => {
@@ -89,6 +96,7 @@ describe('ApplicationDetailPage', () => {
     expect(api.patch).toHaveBeenCalledWith('/api/applications/1/status', {
       status: 'interview',
     })
+    await waitFor(() => expect(onMutated).toHaveBeenCalled())
   })
 
   it('sets priority from the segmented control', async () => {
@@ -112,7 +120,7 @@ describe('ApplicationDetailPage', () => {
     expect(screen.getByLabelText('Company')).toBeInTheDocument()
   })
 
-  it('deletes the application after confirmation and returns to the board', async () => {
+  it('deletes the application after confirmation, then closes and refreshes', async () => {
     renderDetail()
     await screen.findByRole('heading', { name: 'Acme Corp' })
 
@@ -124,7 +132,8 @@ describe('ApplicationDetailPage', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
 
     expect(api.del).toHaveBeenCalledWith('/api/applications/1')
-    expect(await screen.findByText('BOARD HOME')).toBeInTheDocument()
+    await waitFor(() => expect(onClose).toHaveBeenCalled())
+    expect(onMutated).toHaveBeenCalled()
   })
 
   it('cancelling the delete dialog makes no request', async () => {

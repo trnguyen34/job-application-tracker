@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useMatch, useNavigate } from 'react-router-dom'
 import { api, errorMessage } from '../api/client'
 import { useApplications } from '../api/hooks'
 import type { ApplicationCard, Status } from '../api/types'
 import KanbanBoard from '../components/board/KanbanBoard'
 import CloseOutcomeModal from '../components/board/CloseOutcomeModal'
 import NewApplicationModal from '../components/board/NewApplicationModal'
+import ApplicationDetailModal from '../components/detail/ApplicationDetailModal'
 import ThemeToggle from '../components/ui/ThemeToggle'
 import { useToast } from '../components/ui/Toast'
 import type { ColumnKey } from '../lib/design'
@@ -19,6 +20,10 @@ export default function BoardPage() {
   const [pendingCloseId, setPendingCloseId] = useState<number | null>(null)
   const navigate = useNavigate()
   const toast = useToast()
+  // /applications/:id renders this same board with the detail modal open,
+  // so deep links, refresh and the back button all behave.
+  const detailMatch = useMatch('/applications/:id')
+  const openId = detailMatch?.params.id ?? null
 
   useEffect(() => {
     if (data) setCards(data)
@@ -100,6 +105,9 @@ export default function BoardPage() {
           moveCard(id, status)
         }}
       />
+      {openId && (
+        <ApplicationDetailModal id={openId} onClose={() => navigate('/')} onMutated={refetch} />
+      )}
     </div>
   )
 }

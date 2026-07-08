@@ -62,7 +62,10 @@ evolves later, introduce Alembic with a baseline autogenerate revision.
 
 > **Status: implemented** (July 2026). The plan below is kept as the
 > record of what was built and why. CSV import/export survives as API
-> endpoints only (`/api/export/csv`, `/api/import/csv`).
+> endpoints only (`/api/export/csv`, `/api/import/csv`). Follow-up
+> change: the detail view opens as a modal over the board rather than a
+> separate page — `/applications/:id` still deep-links (it renders the
+> board with the modal open), and the back button closes it.
 
 **Design source:** the claude.ai/design project “Job Application Tracker”
 (`ba324b28-3e34-4556-92d3-e7aeb3a52ed6`), file `Job Tracker.dc.html`

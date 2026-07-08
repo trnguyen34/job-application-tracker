@@ -1,21 +1,19 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { api, errorMessage } from '../api/client'
-import { useApplication } from '../api/hooks'
-import type { Priority, Status } from '../api/types'
-import ContactsTab from '../components/detail/ContactsTab'
-import RoundsTab from '../components/detail/RoundsTab'
-import NotesTab from '../components/detail/NotesTab'
-import AttachmentsTab from '../components/detail/AttachmentsTab'
-import DetailsCard, { draftFrom, type DetailsDraft } from '../components/detail/DetailsCard'
-import RemindersCard from '../components/detail/RemindersCard'
-import StatusPill from '../components/detail/StatusPill'
-import ConfirmDialog from '../components/ui/ConfirmDialog'
-import ThemeToggle from '../components/ui/ThemeToggle'
-import { useToast } from '../components/ui/Toast'
-import { toHttpUrl } from '../lib/urls'
-import { formatDateTime } from '../lib/dates'
-import '../styles/detail.css'
+import { useEffect, useState } from 'react'
+import { api, errorMessage } from '../../api/client'
+import { useApplication } from '../../api/hooks'
+import type { Priority, Status } from '../../api/types'
+import ContactsTab from './ContactsTab'
+import RoundsTab from './RoundsTab'
+import NotesTab from './NotesTab'
+import AttachmentsTab from './AttachmentsTab'
+import DetailsCard, { draftFrom, type DetailsDraft } from './DetailsCard'
+import RemindersCard from './RemindersCard'
+import StatusPill from './StatusPill'
+import ConfirmDialog from '../ui/ConfirmDialog'
+import { useToast } from '../ui/Toast'
+import { toHttpUrl } from '../../lib/urls'
+import { formatDateTime } from '../../lib/dates'
+import '../../styles/detail.css'
 
 type Tab = 'contacts' | 'rounds' | 'notes' | 'attachments'
 
@@ -36,11 +34,16 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'attachments', label: 'Attachments' },
 ]
 
-export default function ApplicationDetailPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
+interface Props {
+  id: string
+  onClose: () => void
+  /** Called after any mutation so the board behind the modal stays fresh. */
+  onMutated: () => void
+}
+
+export default function ApplicationDetailModal({ id, onClose, onMutated }: Props) {
   const toast = useToast()
-  const { data: application, error, refetch } = useApplication(id!)
+  const { data: application, error, refetch } = useApplication(id)
   const [tab, setTab] = useState<Tab>('contacts')
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<DetailsDraft | null>(null)
@@ -48,8 +51,57 @@ export default function ApplicationDetailPage() {
     null,
   )
 
-  if (error) return <div className="empty-state">Couldn’t load application: {error.message}</div>
-  if (!application) return <div className="empty-state">Loading…</div>
+  // Escape closes the top-most layer: the confirm dialog first, then the modal.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setConfirm((current) => {
+        if (current) return null
+        onClose()
+        return current
+      })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const shell = (content: React.ReactNode) => (
+    <div className="overlay detail-overlay" onClick={onClose}>
+      <div
+        className="modal-card detail-modal"
+        role="dialog"
+        aria-label={application ? application.company : 'Application'}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {content}
+      </div>
+    </div>
+  )
+
+  if (error)
+    return shell(
+      <>
+        <div className="detail-modal-bar">
+          <button className="modal-close-btn" aria-label="Close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+        <div className="empty-state">Couldn’t load application: {error.message}</div>
+      </>,
+    )
+  if (!application)
+    return shell(
+      <>
+        <div className="detail-modal-bar" />
+        <div className="empty-state">Loading…</div>
+      </>,
+    )
+
+  /** Refresh both the modal's data and the board behind it. */
+  const refresh = () => {
+    refetch()
+    onMutated()
+  }
 
   /** Run a mutation; failures surface as a toast (the design has no inline
       error areas outside form validation). */
@@ -60,13 +112,13 @@ export default function ApplicationDetailPage() {
   const setStatus = (status: Status) =>
     act(async () => {
       await api.patch(`/api/applications/${application.id}/status`, { status })
-      refetch()
+      refresh()
     })
 
   const setPriority = (priority: Priority) =>
     act(async () => {
       await api.patch(`/api/applications/${application.id}`, { priority })
-      refetch()
+      refresh()
     })
 
   const startEdit = () => {
@@ -90,7 +142,7 @@ export default function ApplicationDetailPage() {
         salary_currency: draft.currency,
       })
       setEditing(false)
-      refetch()
+      refresh()
     })
   }
 
@@ -104,26 +156,20 @@ export default function ApplicationDetailPage() {
     act(async () => {
       if (target.kind === 'application') {
         await api.del(`/api/applications/${target.id}`)
-        navigate('/')
+        onMutated()
+        onClose()
         return
       }
       await api.del(`${DELETE_URLS[target.kind]}/${target.id}`)
-      refetch()
+      refresh()
     })
   }
 
   const jobUrl = application.job_url ? toHttpUrl(application.job_url) : null
 
-  return (
-    <div className="view">
-      <div className="top-bar">
-        <button className="crumb-link" onClick={() => navigate('/')}>
-          ← Board
-        </button>
-        <span className="crumb-sep">/</span>
-        <span className="crumb-current">{application.company}</span>
-        <div className="spacer" />
-        <ThemeToggle />
+  return shell(
+    <>
+      <div className="detail-modal-bar">
         {jobUrl && (
           <a className="pill-link" href={jobUrl.href} target="_blank" rel="noopener noreferrer">
             Job posting ↗
@@ -140,6 +186,9 @@ export default function ApplicationDetailPage() {
           }
         >
           Delete
+        </button>
+        <button className="modal-close-btn" aria-label="Close" onClick={onClose}>
+          ✕
         </button>
       </div>
 
@@ -203,7 +252,7 @@ export default function ApplicationDetailPage() {
                 contacts={application.contacts}
                 act={act}
                 requestDelete={requestDelete}
-                onChanged={refetch}
+                onChanged={refresh}
               />
             )}
             {tab === 'rounds' && (
@@ -212,7 +261,7 @@ export default function ApplicationDetailPage() {
                 rounds={application.interview_rounds}
                 act={act}
                 requestDelete={requestDelete}
-                onChanged={refetch}
+                onChanged={refresh}
               />
             )}
             {tab === 'notes' && (
@@ -221,7 +270,7 @@ export default function ApplicationDetailPage() {
                 notes={application.notes}
                 act={act}
                 requestDelete={requestDelete}
-                onChanged={refetch}
+                onChanged={refresh}
               />
             )}
             {tab === 'attachments' && (
@@ -230,7 +279,7 @@ export default function ApplicationDetailPage() {
                 attachments={application.attachments}
                 act={act}
                 requestDelete={requestDelete}
-                onChanged={refetch}
+                onChanged={refresh}
               />
             )}
           </div>
@@ -251,7 +300,7 @@ export default function ApplicationDetailPage() {
             reminders={application.reminders}
             act={act}
             requestDelete={requestDelete}
-            onChanged={refetch}
+            onChanged={refresh}
           />
           <div className="detail-meta mono">
             <span>Created {formatDateTime(application.created_at)}</span>
@@ -271,6 +320,6 @@ export default function ApplicationDetailPage() {
         onCancel={() => setConfirm(null)}
         onConfirm={performDelete}
       />
-    </div>
+    </>,
   )
 }
