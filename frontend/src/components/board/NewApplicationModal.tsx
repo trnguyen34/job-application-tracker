@@ -1,11 +1,19 @@
 import { useState, type FormEvent } from 'react'
 import { api, errorMessage } from '../../api/client'
-import type { Application, Priority, RoundType, Status, WorkMode } from '../../api/types'
-import { ROUND_TYPE_LABELS, STATUS_LABELS } from '../../api/types'
+import type { Application, Priority, Status, WorkMode } from '../../api/types'
+import { STATUS_LABELS } from '../../api/types'
 import { ACTIVE_STATUSES, CLOSED_STATUSES, SOURCE_OPTIONS } from '../../lib/design'
-import { formatDateTime, todayISO } from '../../lib/dates'
+import { todayISO } from '../../lib/dates'
 import LocationInput from '../ui/LocationInput'
 import { useToast } from '../ui/Toast'
+
+/* Contacts and interview rounds are disabled in this modal for now.
+   Uncomment the blocks marked "contacts & rounds" (plus these imports)
+   to restore them; both can still be managed from the detail modal.
+
+import type { RoundType } from '../../api/types'
+import { ROUND_TYPE_LABELS } from '../../api/types'
+import { formatDateTime } from '../../lib/dates'
 
 interface ContactDraft {
   name: string
@@ -40,6 +48,7 @@ const blankRound: RoundDraft = {
 }
 
 const ROUND_TYPES: RoundType[] = ['phone_screen', 'technical', 'onsite', 'final', 'other']
+*/
 
 interface Props {
   onClose: () => void
@@ -51,24 +60,28 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
   const [role, setRole] = useState('')
   const [status, setStatus] = useState<Status>('applied')
   const [location, setLocation] = useState('')
-  const [workMode, setWorkMode] = useState<WorkMode>('remote')
+  const [workMode, setWorkMode] = useState<WorkMode>('onsite')
   const [source, setSource] = useState('LinkedIn')
-  const [priority, setPriority] = useState<Priority>('medium')
+  const [priority, setPriority] = useState<Priority>('high')
   const [jobUrl, setJobUrl] = useState('')
   const [salaryMin, setSalaryMin] = useState('')
   const [salaryMax, setSalaryMax] = useState('')
+  /* contacts & rounds
   const [contacts, setContacts] = useState<ContactDraft[]>([])
   const [contactForm, setContactForm] = useState<ContactDraft | null>(null)
   const [rounds, setRounds] = useState<RoundDraft[]>([])
   const [roundForm, setRoundForm] = useState<RoundDraft | null>(null)
+  */
   const [saving, setSaving] = useState(false)
   const toast = useToast()
 
   const invalid = !company.trim() || !role.trim()
+  /* contacts & rounds
   // Rounds only make sense once the process has started; drafts are kept in
   // state (and restored) if the status flips back, but never submitted for
   // other statuses.
   const showRounds = status === 'phone_screen' || status === 'interview'
+  */
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -97,6 +110,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
       return
     }
 
+    /* contacts & rounds
     try {
       for (const contact of contacts) {
         await api.post(`/api/applications/${created.id}/contacts`, {
@@ -123,6 +137,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
       // and continue into the detail modal where it can be retried.
       toast(errorMessage(err))
     }
+    */
     onCreated(created)
   }
 
@@ -216,6 +231,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
           />
         </div>
 
+        {/* contacts & rounds
         <div className="modal-section">
           <div className="modal-section-head">
             <span className="field-label">Contacts</span>
@@ -379,6 +395,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
             )}
           </div>
         )}
+        */}
 
         <div className="modal-actions">
           <button

@@ -126,12 +126,11 @@ refresh) and the application opens as a modal over the board. Esc, the
 
 **+ New Application** opens the quick-add form. Company and role are
 required; status defaults to **Applied** (stamping today as the applied
-date — pick Wishlist to save without one). The location field suggests
-every US city in `City, ST` form, filtering by city or state as you
-type — free text still works for anything else. You can attach **contacts**
-right away, and choosing *Phone Screen* or *Interview* status unlocks
-adding **interview rounds** before the application even exists. Creating
-drops you straight into the application modal.
+date — pick Wishlist to save without one), work mode to **Onsite**, and
+priority to **High**. The location field suggests every US city in
+`City, ST` form, filtering by city or state as you type — free text
+still works for anything else. Creating drops you straight into the
+application modal — add contacts and interview rounds from there.
 
 ### The dashboard
 

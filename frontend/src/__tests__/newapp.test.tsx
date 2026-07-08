@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+// import { waitFor } from '@testing-library/react' // (contacts & rounds tests)
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import NewApplicationModal from '../components/board/NewApplicationModal'
@@ -25,7 +26,7 @@ describe('NewApplicationModal', () => {
     )
   })
 
-  it('defaults the status to Applied and stamps today as the applied date', async () => {
+  it('defaults to Applied / Onsite / High priority and stamps today as the applied date', async () => {
     const onCreated = vi.fn()
     render(<NewApplicationModal onClose={vi.fn()} onCreated={onCreated} />)
 
@@ -39,7 +40,12 @@ describe('NewApplicationModal', () => {
 
     expect(api.post).toHaveBeenCalledWith(
       '/api/applications',
-      expect.objectContaining({ status: 'applied', applied_date: todayISO() }),
+      expect.objectContaining({
+        status: 'applied',
+        applied_date: todayISO(),
+        work_mode: 'onsite',
+        priority: 'high',
+      }),
     )
     expect(onCreated).toHaveBeenCalledWith({ id: 9 })
   })
@@ -57,6 +63,9 @@ describe('NewApplicationModal', () => {
       expect.objectContaining({ status: 'wishlist', applied_date: null }),
     )
   })
+
+  /* Contacts & interview rounds are commented out in the modal for now;
+     restore these tests alongside them.
 
   it('creates added contacts after the application', async () => {
     const onCreated = vi.fn()
@@ -141,4 +150,5 @@ describe('NewApplicationModal', () => {
       .mock.calls.filter(([path]) => String(path).includes('/interviews'))
     expect(interviewCalls).toHaveLength(0)
   })
+  */
 })
