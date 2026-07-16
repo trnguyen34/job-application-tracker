@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { api, errorMessage } from '../../api/client'
-import type { Application, Priority, Status, WorkMode } from '../../api/types'
+import type { Application, PostingPreview, Priority, Status, WorkMode } from '../../api/types'
 import { STATUS_LABELS } from '../../api/types'
-import { SOURCE_OPTIONS, STATUS_GROUPS, WORK_MODE_LABELS } from '../../lib/design'
+import { CURRENCY_OPTIONS, SOURCE_OPTIONS, STATUS_GROUPS, WORK_MODE_LABELS } from '../../lib/design'
 import { todayISO } from '../../lib/dates'
 import LocationInput from '../ui/LocationInput'
 import Select from '../ui/Select'
@@ -88,6 +88,12 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
   const [jobUrl, setJobUrl] = useState('')
   const [salaryMin, setSalaryMin] = useState('')
   const [salaryMax, setSalaryMax] = useState('')
+  const [currency, setCurrency] = useState('USD')
+  // Work mode and source open with defaults, so "is it still empty?" can't
+  // tell us whether autofill may write there — these flags can.
+  const [workModeTouched, setWorkModeTouched] = useState(false)
+  const [sourceTouched, setSourceTouched] = useState(false)
+  const [autofilling, setAutofilling] = useState(false)
   /* contacts & rounds
   const [contacts, setContacts] = useState<ContactDraft[]>([])
   const [contactForm, setContactForm] = useState<ContactDraft | null>(null)
@@ -98,6 +104,38 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
   const toast = useToast()
 
   const invalid = !company.trim() || !role.trim()
+
+  /** Ask the backend to read the pasted posting and fill in whatever the
+      user hasn't provided yet. Fetched data never wins over typed data,
+      and any failure leaves the form exactly as it was — silence is the
+      designed behavior, since many boards refuse non-browser traffic. */
+  const autofill = async () => {
+    const url = jobUrl.trim()
+    if (!url || autofilling) return
+    setAutofilling(true)
+    try {
+      const preview = await api.post<PostingPreview>('/api/posting-preview', { url })
+      // Functional updates: the user may have kept typing while we fetched.
+      const fillText = (set: (fn: (v: string) => string) => void, fetched: string | null) => {
+        if (fetched) set((v) => (v.trim() ? v : fetched))
+      }
+      fillText(setCompany, preview.company)
+      fillText(setRole, preview.role)
+      fillText(setLocation, preview.location)
+      fillText(setSalaryMin, preview.salary_min != null ? String(preview.salary_min) : null)
+      fillText(setSalaryMax, preview.salary_max != null ? String(preview.salary_max) : null)
+      if (!workModeTouched && preview.work_mode) setWorkMode(preview.work_mode)
+      if (!sourceTouched && preview.source && SOURCE_OPTIONS.includes(preview.source)) {
+        setSource(preview.source)
+      }
+      if (preview.salary_currency && CURRENCY_OPTIONS.includes(preview.salary_currency)) {
+        setCurrency(preview.salary_currency)
+      }
+    } catch {
+      /* silent by design */
+    }
+    setAutofilling(false)
+  }
   /* contacts & rounds
   // Rounds only make sense once the process has started; drafts are kept in
   // state (and restored) if the status flips back, but never submitted for
@@ -124,7 +162,7 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
         job_url: jobUrl.trim() || null,
         salary_min: salaryMin === '' ? null : Number(salaryMin),
         salary_max: salaryMax === '' ? null : Number(salaryMax),
-        salary_currency: 'USD',
+        salary_currency: currency,
       })
     } catch (err) {
       toast(errorMessage(err))
@@ -203,13 +241,19 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
             ariaLabel="Work mode"
             value={workMode}
             groups={WORK_MODE_GROUP}
-            onChange={(m) => setWorkMode(m as WorkMode)}
+            onChange={(m) => {
+              setWorkMode(m as WorkMode)
+              setWorkModeTouched(true)
+            }}
           />
           <Select
             ariaLabel="Source"
             value={source}
             groups={SOURCE_GROUP}
-            onChange={setSource}
+            onChange={(s) => {
+              setSource(s)
+              setSourceTouched(true)
+            }}
           />
           <Select
             ariaLabel="Priority"
@@ -217,12 +261,21 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
             groups={PRIORITY_GROUP}
             onChange={(p) => setPriority(p as Priority)}
           />
-          <input
-            className="span-2"
-            placeholder="Job posting URL"
-            value={jobUrl}
-            onChange={(e) => setJobUrl(e.target.value)}
-          />
+          <div className="span-2 url-autofill">
+            <input
+              placeholder="Job posting URL"
+              value={jobUrl}
+              onChange={(e) => setJobUrl(e.target.value)}
+            />
+            <button
+              type="button"
+              className="autofill-btn"
+              disabled={!jobUrl.trim() || autofilling}
+              onClick={autofill}
+            >
+              {autofilling ? 'Filling…' : 'Autofill'}
+            </button>
+          </div>
           <input
             type="number"
             min="0"

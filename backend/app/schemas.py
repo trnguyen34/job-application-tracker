@@ -118,6 +118,28 @@ class ApplicationCard(ApplicationRead):
     next_interview: InterviewBrief | None = None
 
 
+# --- Posting preview (autofill from a pasted URL) ---------------------------
+
+
+class PostingPreviewRequest(BaseModel):
+    url: str = Field(min_length=1)
+
+
+class PostingPreview(BaseModel):
+    """Whatever a job posting page gave up; None means unknown. The feature
+    is best-effort by design, so this is always a 200 — an unreachable or
+    unreadable page just returns all Nones."""
+
+    company: str | None = None
+    role: str | None = None
+    location: str | None = None
+    work_mode: WorkMode | None = None
+    salary_min: int | None = None
+    salary_max: int | None = None
+    salary_currency: str | None = None
+    source: str | None = None
+
+
 # --- Contacts ---------------------------------------------------------------
 
 

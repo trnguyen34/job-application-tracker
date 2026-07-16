@@ -262,6 +262,19 @@
   font-size: 13.5px;
 }
 
+/* Posting URL + the Autofill button that reads it. The input runs 2px
+   taller than the 38px button geometry; centring splits the difference. */
+.url-autofill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.url-autofill input {
+  flex: 1;
+  min-width: 0;
+}
+
 .field-label {
   font-size: 11px;
   color: var(--text-faint);

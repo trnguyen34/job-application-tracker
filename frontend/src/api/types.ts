@@ -65,6 +65,19 @@ export interface Application {
   updated_at: string
 }
 
+/** What /api/posting-preview read off a pasted job posting URL; null means
+    the page didn't give that field up (the endpoint never errors). */
+export interface PostingPreview {
+  company: string | null
+  role: string | null
+  location: string | null
+  work_mode: WorkMode | null
+  salary_min: number | null
+  salary_max: number | null
+  salary_currency: string | null
+  source: string | null
+}
+
 export interface ReminderBrief {
   id: number
   due_date: string
