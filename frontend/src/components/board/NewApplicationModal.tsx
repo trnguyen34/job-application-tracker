@@ -4,6 +4,7 @@ import type { Application, PostingPreview, Priority, Status, WorkMode } from '..
 import { STATUS_LABELS } from '../../api/types'
 import { CURRENCY_OPTIONS, SOURCE_OPTIONS, STATUS_GROUPS, WORK_MODE_LABELS } from '../../lib/design'
 import { todayISO } from '../../lib/dates'
+import { canonicalCity } from '../../lib/usCities'
 import LocationInput from '../ui/LocationInput'
 import Select from '../ui/Select'
 import { useToast } from '../ui/Toast'
@@ -121,7 +122,12 @@ export default function NewApplicationModal({ onClose, onCreated }: Props) {
       }
       fillText(setCompany, preview.company)
       fillText(setRole, preview.role)
-      fillText(setLocation, preview.location)
+      if (preview.location) {
+        // Snap to the autocomplete's own "City, ST" label when we can
+        // ("San Francisco, California, US" → "San Francisco, CA"); an
+        // unrecognized place fills as written.
+        fillText(setLocation, (await canonicalCity(preview.location)) ?? preview.location)
+      }
       fillText(setSalaryMin, preview.salary_min != null ? String(preview.salary_min) : null)
       fillText(setSalaryMax, preview.salary_max != null ? String(preview.salary_max) : null)
       if (!workModeTouched && preview.work_mode) setWorkMode(preview.work_mode)

@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react'
-// import { waitFor } from '@testing-library/react' // (contacts & rounds tests)
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import NewApplicationModal from '../components/board/NewApplicationModal'
@@ -56,7 +55,8 @@ describe('NewApplicationModal', () => {
         ? Promise.resolve({
             company: 'Anthropic',
             role: 'Senior Backend Engineer',
-            location: 'San Francisco, CA',
+            // verbose posting form — must land as the autocomplete's own label
+            location: 'San Francisco, California, United States',
             work_mode: 'remote',
             salary_min: 170000,
             salary_max: 210000,
@@ -74,7 +74,9 @@ describe('NewApplicationModal', () => {
     expect(api.post).toHaveBeenCalledWith('/api/posting-preview', { url })
     expect(screen.getByPlaceholderText('Company *')).toHaveValue('Anthropic')
     expect(screen.getByPlaceholderText('Role / title *')).toHaveValue('Senior Backend Engineer')
-    expect(screen.getByPlaceholderText('Location')).toHaveValue('San Francisco, CA')
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Location')).toHaveValue('San Francisco, CA'),
+    )
     expect(screen.getByRole('button', { name: 'Work mode' })).toHaveTextContent('Remote')
     expect(screen.getByRole('button', { name: 'Source' })).toHaveTextContent('Company Site')
     expect(screen.getByPlaceholderText('Min salary')).toHaveValue(170000)

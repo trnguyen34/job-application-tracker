@@ -94,6 +94,41 @@ export function preloadCities(): void {
   void ensureLoaded()
 }
 
+/** Country spellings job postings put after the state; anything here is
+    dropped before matching. */
+const COUNTRY_TOKENS = new Set([
+  'us',
+  'usa',
+  'u.s.',
+  'u.s.a.',
+  'united states',
+  'united states of america',
+])
+
+/** The autocomplete's own "City, ST" label for however a job posting
+    spelled the place — "San Francisco, California, United States" →
+    "San Francisco, CA" — or null when unsure (unknown place, or a bare
+    city name that several states share), so the caller keeps the raw
+    text instead of a guess. */
+export async function canonicalCity(location: string): Promise<string | null> {
+  const parts = location
+    .split(',')
+    .map((part) => part.trim().toLowerCase())
+    .filter(Boolean)
+  while (parts.length > 1 && COUNTRY_TOKENS.has(parts[parts.length - 1])) parts.pop()
+  if (!parts.length) return null
+  const [cityQ, stateQ] = parts
+
+  await ensureLoaded()
+  const candidates = entries!.filter((e) => e.city === cityQ)
+  if (!candidates.length) return null
+  if (stateQ) {
+    return candidates.find((e) => e.abbr === stateQ || e.stateName === stateQ)?.label ?? null
+  }
+  // Bare city: only trust it when it names one place.
+  return candidates.length === 1 ? candidates[0].label : null
+}
+
 /** Match on city or state: "san fr" → San Francisco; "TX" / "texas" →
     Texas cities; "spring, il" → Springfield, IL. Returns "City, ST"
     labels, capped. */
