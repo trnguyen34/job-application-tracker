@@ -173,8 +173,9 @@ Stats at a glance: totals, active pipeline, offers, rejections, and
 average days to first interview. **Upcoming follow-ups** lists undone
 reminders due in the next two weeks (overdue first — click a row to jump
 to its application). Below: a GitHub-style **activity heatmap** of
-applications per day over the last year, applications per week, the
-pipeline funnel, and applications by source.
+applications per day over the last year — hover any square for that day's
+count — plus applications per week, the pipeline funnel, and applications
+by source.
 
 ### Dark mode
 
