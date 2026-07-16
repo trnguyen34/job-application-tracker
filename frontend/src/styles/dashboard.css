@@ -151,6 +151,52 @@
   border-radius: 3px;
 }
 
+/* Only real days carry data-index — the blanks padding the last week
+   aren't hoverable. The ring tracks the ink so it stays legible against
+   the squares in both themes. */
+.contrib-cell[data-index]:hover {
+  outline: 1.5px solid var(--text);
+  outline-offset: 1px;
+}
+
+/* Fixed, not absolute: .contrib-scroller is a scroll container, so an
+   absolutely positioned tip would be clipped at the panel's edges. The
+   component anchors it over the square (translate centres it on the
+   square's middle and lifts it clear) and slides --caret-x back onto the
+   square when the box has to be clamped to the viewport. */
+.contrib-tip {
+  position: fixed;
+  z-index: 60;
+  transform: translate(-50%, -100%);
+  background: var(--tooltip-bg);
+  color: var(--tooltip-fg);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.contrib-tip-count {
+  font-weight: 600;
+}
+
+.contrib-tip-date {
+  opacity: 0.72;
+}
+
+.contrib-tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: var(--caret-x, 50%);
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: var(--tooltip-bg);
+}
+
 .contrib-month {
   font-size: 12px;
   color: var(--text-faint);

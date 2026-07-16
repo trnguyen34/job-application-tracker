@@ -1,10 +1,20 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import DashboardPage from '../pages/DashboardPage'
 import { api } from '../api/client'
 import { daysAgo } from './fixtures'
 import type { Stats } from '../api/types'
+
+/** How the heatmap spells a day out, e.g. "Wednesday, January 15, 2026". */
+const longDate = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
 
 // Stub only `api`; keep ApiError/errorMessage real for components that use them.
 vi.mock('../api/client', async (importOriginal) => ({
@@ -73,8 +83,27 @@ describe('DashboardPage', () => {
     expect(grid.querySelectorAll('.contrib-cell')).toHaveLength(53 * 7)
     expect(grid.querySelectorAll('.contrib-day')).toHaveLength(3) // Mon/Wed/Fri
     expect(screen.getByText('3 applications submitted in the last year')).toBeInTheDocument()
-    const busy = within(grid).getByTitle(`${daysAgo(1)}: 2 applications`)
-    expect(busy).toBeInTheDocument()
+    expect(within(grid).getByLabelText(`2 applications on ${longDate(daysAgo(1))}`)).toBeInTheDocument()
+  })
+
+  it('shows a tooltip on the hovered day, and drops it on leaving the grid', async () => {
+    renderPage()
+    const grid = await screen.findByTestId('activity-heatmap')
+    const busy = within(grid).getByLabelText(`2 applications on ${longDate(daysAgo(1))}`)
+
+    await userEvent.hover(busy)
+    const tip = screen.getByRole('tooltip')
+    expect(tip).toHaveTextContent(`2 applications on ${longDate(daysAgo(1))}`)
+
+    // A quiet day reports zero rather than going blank.
+    const quiet = within(grid).getByLabelText(`No applications on ${longDate(daysAgo(2))}`)
+    await userEvent.hover(quiet)
+    expect(screen.getByRole('tooltip')).toHaveTextContent(
+      `No applications on ${longDate(daysAgo(2))}`,
+    )
+
+    await userEvent.unhover(quiet)
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
 
   it('renders weekly bars, funnel and source charts without a chart library', async () => {

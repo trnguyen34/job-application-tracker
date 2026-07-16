@@ -22,6 +22,12 @@
   --tint-weak: rgba(33, 29, 23, 0.06);
   --disabled-bg: #e4dfd3;
 
+  /* Hover tooltip (activity heatmap). GitHub's trick — a high-contrast
+     block that reads as floating above the page — in this palette: the
+     ink inverted here, a raised warm gray in dark (see below). */
+  --tooltip-bg: #211d17;
+  --tooltip-fg: #f6f2ea;
+
   /* Accent (design default #B5502E) and precomputed derivations */
   --accent: #b5502e;
   --accent-hover: #9c4325;
@@ -117,6 +123,11 @@
   --overlay: rgba(0, 0, 0, 0.6);
   --tint-weak: rgba(241, 235, 224, 0.08);
   --disabled-bg: #35322b;
+
+  /* Lifted above the surfaces rather than inverted — a cream block would
+     glare against the dark page. */
+  --tooltip-bg: #3d3830;
+  --tooltip-fg: #f1ebe0;
 
   /* button-design.jpg: dark primary buttons use a lighter terracotta */
   --accent: #c2653e;
