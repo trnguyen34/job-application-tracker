@@ -6,9 +6,10 @@
 A single-user job application tracker that runs entirely on your machine.
 Kanban pipeline with drag-and-drop (five active columns plus a grouped
 Closed column), application details with contacts / interview rounds /
-notes / reminders / file attachments, a stats dashboard with a GitHub-style
-activity heatmap, light & dark themes, and CSV import/export via the API.
-No accounts, no cloud — one SQLite file.
+notes / reminders / file attachments, autofill from a pasted job-posting
+URL, a stats dashboard with a GitHub-style activity heatmap, light & dark
+themes, and CSV import/export via the API. No accounts, no cloud — one
+SQLite file.
 
 **Stack**
 
@@ -135,6 +136,17 @@ priority to **High**. The location field suggests every US city in
 still works for anything else. Creating drops you straight into the
 application modal — add contacts and interview rounds from there.
 
+Paste the posting's URL and hit **Autofill** to skip the typing: the
+app fetches the page and fills whatever it can read — company, role,
+location (snapped to the same `City, ST` form the suggestions use),
+salary range, remote work mode, and the source, inferred from the
+domain. It reads the structured data job pages embed for Google Jobs,
+so it works best on ATS-hosted postings (Lever, Ashby, many company
+career pages); sites that wall off automated traffic — LinkedIn,
+Indeed — usually give up nothing but the source. Autofill never
+overwrites something you already typed, and a page it can't read
+simply leaves the form alone.
+
 ### The launch check
 
 ![Stale applications prompt](docs/screenshots/stale-check.png)
@@ -186,6 +198,8 @@ by source.
 - Backend code is in `backend/app/` (routers → services → models); tests in
   `backend/tests/` run against an in-memory SQLite and a temp uploads dir.
 - Frontend code is in `frontend/src/`; component tests mock the API client.
-- Everything works offline. CORS is open only to the Vite dev origin.
+- Everything works offline except Autofill, which by nature fetches the
+  posting URL you pasted (and quietly does nothing without a network).
+  CORS is open only to the Vite dev origin.
 - Python deps are pinned in `backend/requirements.txt` and installed into
   `backend/.venv` — never globally.
