@@ -1,5 +1,4 @@
-import { render, screen } from '@testing-library/react'
-// import { waitFor } from '@testing-library/react' // (contacts & rounds tests)
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import NewApplicationModal from '../components/board/NewApplicationModal'
@@ -48,6 +47,96 @@ describe('NewApplicationModal', () => {
       }),
     )
     expect(onCreated).toHaveBeenCalledWith({ id: 9 })
+  })
+
+  it('autofills only the fields the posting could provide, then submits them', async () => {
+    vi.mocked(api.post).mockImplementation((path: string) =>
+      path === '/api/posting-preview'
+        ? Promise.resolve({
+            company: 'Anthropic',
+            role: 'Senior Backend Engineer',
+            // verbose posting form — must land as the autocomplete's own label
+            location: 'San Francisco, California, United States',
+            work_mode: 'remote',
+            salary_min: 170000,
+            salary_max: 210000,
+            salary_currency: 'EUR',
+            source: 'Company Site',
+          })
+        : Promise.resolve({ id: 9 }),
+    )
+    render(<NewApplicationModal onClose={vi.fn()} onCreated={vi.fn()} />)
+
+    const url = 'https://boards.greenhouse.io/anthropic/jobs/123'
+    await userEvent.type(screen.getByPlaceholderText('Job posting URL'), url)
+    await userEvent.click(screen.getByRole('button', { name: 'Autofill' }))
+
+    expect(api.post).toHaveBeenCalledWith('/api/posting-preview', { url })
+    expect(screen.getByPlaceholderText('Company *')).toHaveValue('Anthropic')
+    expect(screen.getByPlaceholderText('Role / title *')).toHaveValue('Senior Backend Engineer')
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Location')).toHaveValue('San Francisco, CA'),
+    )
+    expect(screen.getByRole('button', { name: 'Work mode' })).toHaveTextContent('Remote')
+    expect(screen.getByRole('button', { name: 'Source' })).toHaveTextContent('Company Site')
+    expect(screen.getByPlaceholderText('Min salary')).toHaveValue(170000)
+    expect(screen.getByPlaceholderText('Max salary')).toHaveValue(210000)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add to Applied' }))
+    expect(api.post).toHaveBeenCalledWith(
+      '/api/applications',
+      expect.objectContaining({
+        company: 'Anthropic',
+        work_mode: 'remote',
+        source: 'Company Site',
+        salary_min: 170000,
+        salary_max: 210000,
+        salary_currency: 'EUR',
+      }),
+    )
+  })
+
+  it('never overwrites what the user already chose', async () => {
+    vi.mocked(api.post).mockImplementation((path: string) =>
+      path === '/api/posting-preview'
+        ? Promise.resolve({
+            company: 'Wrong Corp',
+            role: 'Fetched Role',
+            location: null,
+            work_mode: 'remote',
+            salary_min: null,
+            salary_max: null,
+            salary_currency: null,
+            source: 'Job Board',
+          })
+        : Promise.resolve({ id: 9 }),
+    )
+    render(<NewApplicationModal onClose={vi.fn()} onCreated={vi.fn()} />)
+
+    await userEvent.type(screen.getByPlaceholderText('Company *'), 'Hand-Typed Inc')
+    await userEvent.click(screen.getByRole('button', { name: 'Source' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Referral' }))
+
+    await userEvent.type(screen.getByPlaceholderText('Job posting URL'), 'https://example.com/j/1')
+    await userEvent.click(screen.getByRole('button', { name: 'Autofill' }))
+
+    expect(screen.getByPlaceholderText('Company *')).toHaveValue('Hand-Typed Inc')
+    expect(screen.getByRole('button', { name: 'Source' })).toHaveTextContent('Referral')
+    // the untouched empty field still benefits
+    expect(screen.getByPlaceholderText('Role / title *')).toHaveValue('Fetched Role')
+  })
+
+  it('fails silently when the preview request does', async () => {
+    vi.mocked(api.post).mockRejectedValue(new Error('network down'))
+    render(<NewApplicationModal onClose={vi.fn()} onCreated={vi.fn()} />)
+
+    await userEvent.type(screen.getByPlaceholderText('Job posting URL'), 'https://example.com/j/1')
+    await userEvent.click(screen.getByRole('button', { name: 'Autofill' }))
+
+    expect(screen.getByPlaceholderText('Company *')).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Autofill' })).toBeEnabled()
+    // silent means silent: no toast, no error text
+    expect(document.querySelector('.toast')).not.toBeInTheDocument()
   })
 
   it('sends no applied date when the status is set back to Wishlist', async () => {

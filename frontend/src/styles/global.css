@@ -168,6 +168,7 @@ textarea:focus {
 .save-pill,
 .pill-link,
 .settings-action,
+.autofill-btn,
 .stale-ghost,
 .stale-snooze,
 .btn-danger-pill,
@@ -216,6 +217,7 @@ textarea:focus {
 /* secondary */
 .pill-link,
 .settings-action,
+.autofill-btn,
 .stale-ghost,
 .stale-snooze {
   background: var(--surface);
@@ -223,11 +225,17 @@ textarea:focus {
   color: var(--text);
 }
 
-.pill-link:hover,
+.pill-link:hover:not(:disabled),
 .settings-action:hover,
+.autofill-btn:hover:not(:disabled),
 .stale-ghost:hover,
 .stale-snooze:hover {
   background: var(--tint-weak);
+}
+
+.autofill-btn:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
 }
 
 /* danger — outlined, not filled */

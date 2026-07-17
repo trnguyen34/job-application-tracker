@@ -15,6 +15,7 @@ from .routers import (
     csv_io,
     interviews,
     notes,
+    posting,
     reminders,
     stats,
 )
@@ -41,6 +42,7 @@ app.add_middleware(
 
 app.include_router(applications.router)
 app.include_router(contacts.router)
+app.include_router(posting.router)
 app.include_router(interviews.router)
 app.include_router(notes.router)
 app.include_router(reminders.router)
